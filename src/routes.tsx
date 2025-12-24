@@ -18,6 +18,7 @@ import PatientFaceRecognitionPage from './pages/patient/PatientFaceRecognitionPa
 // Caregiver pages
 import CaregiverSetupPage from './pages/caregiver/CaregiverSetupPage';
 import CaregiverDashboardPage from './pages/caregiver/CaregiverDashboardPage';
+import CaregiverPatientsPage from './pages/caregiver/CaregiverPatientsPage';
 import CaregiverPatientDetailsPage from './pages/caregiver/CaregiverPatientDetailsPage';
 
 interface RouteConfig {
@@ -94,6 +95,11 @@ const routes: RouteConfig[] = [
     name: 'Caregiver Dashboard',
     path: '/caregiver/dashboard',
     element: <CaregiverDashboardPage />
+  },
+  {
+    name: 'Manage Patients',
+    path: '/caregiver/patients',
+    element: <CaregiverPatientsPage />
   },
   {
     name: 'Patient Details',
