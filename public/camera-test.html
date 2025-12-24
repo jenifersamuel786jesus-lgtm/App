@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Camera Test Page</h1>
+    <p>This page tests if your camera works in the browser.</p>
+    
+    <button id="startBtn" onclick="startCamera()">Start Camera (Front)</button>
+    <button id="startBackBtn" onclick="startBackCamera()">Start Camera (Back)</button>
+    <button id="stopBtn" onclick="stopCamera()" disabled>Stop Camera</button>
+    
+    <video id="video" autoplay playsinline></video>
+    
+    <div class="log" id="log"></div>
+    
+    <h2>Instructions:</h2>
+    <ol>
+        <li>Click "Start Camera (Back)" to test the back camera</li>
+        <li>Allow camera permissions when prompted</li>
+        <li>You should see the camera feed above</li>
+        <li>Check the log below for any errors</li>
+    </ol>
+    
+    <h2>Browser Info:</h2>
+    <p id="browserInfo"></p>
+    
+    <script>
+        const video = document.getElementById('video');
+        const log = document.getElementById('log');
+        const startBtn = document.getElementById('startBtn');
+        const startBackBtn = document.getElementById('startBackBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        let stream = null;
+        
+        // Display browser info
+        document.getElementById('browserInfo').innerHTML = `
+            <strong>User Agent:</strong> ${navigator.userAgent}<br>
+            <strong>Platform:</strong> ${navigator.platform}<br>
+            <strong>MediaDevices API:</strong> ${navigator.mediaDevices ? 'Supported ✓' : 'Not Supported ✗'}
+        `;
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+            console.log(message);
+        }
+        
+        async function startCamera() {
+            addLog('Starting front camera...', 'info');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                startBtn.disabled = true;
+                startBackBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                addLog('✓ Front camera started successfully!', 'success');
+                addLog(`Stream tracks: ${stream.getTracks().length}`, 'info');
+            } catch (error) {
+                addLog(`✗ Error: ${error.name} - ${error.message}`, 'error');
+            }
+        }
+        
+        async function startBackCamera() {
+            addLog('Starting back camera...', 'info');
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment'
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                startBtn.disabled = true;
+                startBackBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                addLog('✓ Back camera started successfully!', 'success');
+                addLog(`Stream tracks: ${stream.getTracks().length}`, 'info');
+            } catch (error) {
+                addLog(`✗ Error: ${error.name} - ${error.message}`, 'error');
+            }
+        }
+        
+        function stopCamera() {
+            addLog('Stopping camera...', 'info');
+            if (stream) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                    addLog(`Stopped track: ${track.kind}`, 'info');
+                });
+                video.srcObject = null;
+                stream = null;
+                startBtn.disabled = false;
+                startBackBtn.disabled = false;
+                stopBtn.disabled = true;
+                addLog('✓ Camera stopped', 'success');
+            }
+        }
+        
+        // Check for camera devices
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    const cameras = devices.filter(device => device.kind === 'videoinput');
+                    addLog(`Found ${cameras.length} camera(s)`, 'info');
+                    cameras.forEach((camera, index) => {
+                        addLog(`Camera ${index + 1}: ${camera.label || 'Unknown'}`, 'info');
+                    });
+                })
+                .catch(error => {
+                    addLog(`Error enumerating devices: ${error.message}`, 'error');
+                });
+        }
+        
+        addLog('Camera test page loaded', 'success');
+    </script>
+</body>
+</html>

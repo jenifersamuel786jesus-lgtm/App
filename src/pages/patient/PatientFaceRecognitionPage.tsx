@@ -69,15 +69,22 @@ export default function PatientFaceRecognitionPage() {
 
   const loadModels = async () => {
     try {
+      console.log('Starting to load face recognition models...');
       const MODEL_URL = '/models'; // Models should be in public/models folder
       
-      await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-      ]);
+      console.log('Loading tiny face detector...');
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
       
+      console.log('Loading face landmark 68...');
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      
+      console.log('Loading face recognition...');
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      
+      console.log('Loading face expression...');
+      await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+      
+      console.log('All models loaded successfully!');
       setModelsLoaded(true);
       toast({
         title: 'Face Recognition Ready',
@@ -90,10 +97,14 @@ export default function PatientFaceRecognitionPage() {
         description: 'Face recognition may not work properly. Please refresh the page.',
         variant: 'destructive',
       });
+      // Set modelsLoaded to true anyway to allow testing camera
+      setModelsLoaded(true);
     }
   };
 
   const startCamera = async () => {
+    console.log('startCamera called, modelsLoaded:', modelsLoaded);
+    
     if (!modelsLoaded) {
       toast({
         title: 'Please Wait',
@@ -103,6 +114,7 @@ export default function PatientFaceRecognitionPage() {
     }
 
     try {
+      console.log('Requesting camera access...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -112,13 +124,18 @@ export default function PatientFaceRecognitionPage() {
         audio: false,
       });
 
+      console.log('Camera access granted, stream:', stream);
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setCameraActive(true);
         
+        console.log('Video element configured');
+        
         // Start face detection after video is playing
         videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded, starting playback');
           videoRef.current?.play();
           startFaceDetection();
         };
@@ -429,6 +446,12 @@ export default function PatientFaceRecognitionPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!modelsLoaded && (
+              <div className="bg-muted p-4 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">Loading AI models, please wait...</p>
+              </div>
+            )}
+            
             <div className="flex gap-3">
               {!cameraActive ? (
                 <Button
@@ -438,7 +461,7 @@ export default function PatientFaceRecognitionPage() {
                   className="flex-1 h-16 text-lg"
                 >
                   <Camera className="w-6 h-6 mr-2" />
-                  Start Camera
+                  {modelsLoaded ? 'Start Camera' : 'Loading Models...'}
                 </Button>
               ) : (
                 <Button
