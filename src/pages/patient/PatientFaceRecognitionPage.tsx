@@ -107,7 +107,7 @@ export default function PatientFaceRecognitionPage() {
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'user',
+          facingMode: 'environment', // Use back camera
         },
         audio: false,
       });
@@ -424,7 +424,7 @@ export default function PatientFaceRecognitionPage() {
             <CardTitle className="text-2xl">Camera</CardTitle>
             <CardDescription>
               {modelsLoaded 
-                ? 'Face recognition is ready. Start the camera to begin.' 
+                ? 'Face recognition is ready. Start the camera to begin. Point the back camera at people to recognize them.' 
                 : 'Loading face recognition models...'}
             </CardDescription>
           </CardHeader>
@@ -568,7 +568,7 @@ export default function PatientFaceRecognitionPage() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
                 <span className="text-sm font-bold text-primary">1</span>
               </div>
-              <p>Start the camera and point it at someone's face</p>
+              <p>Start the camera and point the back camera at someone's face</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
@@ -587,6 +587,12 @@ export default function PatientFaceRecognitionPage() {
                 <span className="text-sm font-bold text-primary">4</span>
               </div>
               <p>Make sure you're wearing your Bluetooth earphones to hear me</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                <span className="text-sm font-bold text-primary">5</span>
+              </div>
+              <p>Hold your device steady and ensure good lighting for best results</p>
             </div>
           </CardContent>
         </Card>

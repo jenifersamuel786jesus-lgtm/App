@@ -6,9 +6,9 @@ The RemZy Face Recognition system provides real-time face detection and recognit
 
 ## Features Implemented
 
-### 1. Real-Time Camera Feed
+### 1. Real-Time Camera System
 - Continuous video stream from device camera
-- Optimized for front-facing camera (selfie mode)
+- Optimized for back-facing camera (environment mode)
 - 1280x720 resolution for balance between quality and performance
 - Canvas overlay for face detection visualization
 
@@ -130,6 +130,7 @@ Camera Feed → Face Detection → Feature Extraction → Matching → Audio Fee
 
 3. **Point at Person's Face**
    - Hold device steady
+   - Point back camera at the person
    - Face should be clearly visible
    - Wait 2-3 seconds for detection
 
@@ -196,7 +197,7 @@ Caregivers can view:
 
 ### Device Requirements
 
-- **Camera**: Front or rear camera
+- **Camera**: Back (rear) camera required
 - **RAM**: 2GB+ recommended
 - **CPU**: Modern processor (2015+)
 - **Network**: Initial model download only
@@ -352,7 +353,7 @@ Requests camera access and starts video stream.
 ```typescript
 const startCamera = async () => {
   const stream = await navigator.mediaDevices.getUserMedia({
-    video: { width: 1280, height: 720, facingMode: 'user' }
+    video: { width: 1280, height: 720, facingMode: 'environment' } // Back camera
   });
   videoRef.current.srcObject = stream;
 };
