@@ -9,10 +9,15 @@ import ModeSelectionPage from './pages/ModeSelectionPage';
 import PatientSetupPage from './pages/patient/PatientSetupPage';
 import PatientDashboardPage from './pages/patient/PatientDashboardPage';
 import PatientAICompanionPage from './pages/patient/PatientAICompanionPage';
+import PatientTasksPage from './pages/patient/PatientTasksPage';
+import PatientContactsPage from './pages/patient/PatientContactsPage';
+import PatientHealthPage from './pages/patient/PatientHealthPage';
+import PatientSettingsPage from './pages/patient/PatientSettingsPage';
 
 // Caregiver pages
 import CaregiverSetupPage from './pages/caregiver/CaregiverSetupPage';
 import CaregiverDashboardPage from './pages/caregiver/CaregiverDashboardPage';
+import CaregiverPatientDetailsPage from './pages/caregiver/CaregiverPatientDetailsPage';
 
 interface RouteConfig {
   name: string;
@@ -53,6 +58,26 @@ const routes: RouteConfig[] = [
     path: '/patient/ai-companion',
     element: <PatientAICompanionPage />
   },
+  {
+    name: 'My Tasks',
+    path: '/patient/tasks',
+    element: <PatientTasksPage />
+  },
+  {
+    name: 'My Contacts',
+    path: '/patient/contacts',
+    element: <PatientContactsPage />
+  },
+  {
+    name: 'My Health',
+    path: '/patient/health',
+    element: <PatientHealthPage />
+  },
+  {
+    name: 'Patient Settings',
+    path: '/patient/settings',
+    element: <PatientSettingsPage />
+  },
   // Caregiver routes
   {
     name: 'Caregiver Setup',
@@ -63,6 +88,11 @@ const routes: RouteConfig[] = [
     name: 'Caregiver Dashboard',
     path: '/caregiver/dashboard',
     element: <CaregiverDashboardPage />
+  },
+  {
+    name: 'Patient Details',
+    path: '/caregiver/patient/:patientId',
+    element: <CaregiverPatientDetailsPage />
   },
 ];
 

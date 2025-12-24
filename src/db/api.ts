@@ -62,6 +62,20 @@ export const getPatientByProfileId = async (profileId: string): Promise<PatientW
   return data;
 };
 
+export const getPatient = async (patientId: string): Promise<Patient | null> => {
+  const { data, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('id', patientId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching patient:', error);
+    return null;
+  }
+  return data;
+};
+
 export const createPatient = async (patient: Partial<Patient>): Promise<Patient | null> => {
   // Generate linking code
   const { data: codeData } = await supabase.rpc('generate_linking_code');
