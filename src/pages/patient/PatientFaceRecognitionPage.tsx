@@ -125,28 +125,113 @@ export default function PatientFaceRecognitionPage() {
       });
 
       console.log('Camera access granted, stream:', stream);
+      console.log('Stream active:', stream.active);
+      console.log('Stream tracks:', stream.getTracks());
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        
+        console.log('Video element configured');
+        console.log('Video readyState:', videoRef.current.readyState);
+        
+        // Set camera active immediately
+        setCameraActive(true);
+        
+        // Ensure video plays
+        try {
+          await videoRef.current.play();
+          console.log('Video play() called successfully');
+        } catch (playError) {
+          console.error('Error calling play():', playError);
+        }
+        
+        // Start face detection after video is playing
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
+          videoRef.current?.play().then(() => {
+            console.log('Video playing after metadata loaded');
+            startFaceDetection();
+          }).catch(err => {
+            console.error('Error playing video after metadata:', err);
+          });
+        };
+
+        whisper('Camera activated. I will help you recognize people.');
+        
+        toast({
+          title: 'Camera Started',
+          description: 'Point the back camera at people to recognize them.',
+        });
+      } else {
+        console.error('Video ref is null!');
+        toast({
+          title: 'Error',
+          description: 'Video element not found. Please refresh the page.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      
+      let errorMessage = 'Please allow camera access to use face recognition.';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = 'Camera permission denied. Please allow camera access in your browser settings.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = 'No camera found. Please ensure your device has a camera.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = 'Camera is in use by another application. Please close other apps using the camera.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage = 'Camera constraints not supported. Trying with default settings...';
+        // Try again with simpler constraints
+        trySimpleCamera();
+        return;
+      }
+      
+      toast({
+        title: 'Camera Access Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const trySimpleCamera = async () => {
+    console.log('Trying simple camera configuration...');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false,
+      });
+
+      console.log('Simple camera access granted');
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setCameraActive(true);
         
-        console.log('Video element configured');
+        await videoRef.current.play();
         
-        // Start face detection after video is playing
         videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded, starting playback');
-          videoRef.current?.play();
+          console.log('Video metadata loaded (simple mode)');
           startFaceDetection();
         };
 
-        whisper('Camera activated. I will help you recognize people.');
+        toast({
+          title: 'Camera Started',
+          description: 'Using default camera settings.',
+        });
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      console.error('Simple camera also failed:', error);
       toast({
-        title: 'Camera Access Denied',
-        description: 'Please allow camera access to use face recognition.',
+        title: 'Camera Failed',
+        description: 'Unable to access camera. Please check your device settings.',
         variant: 'destructive',
       });
     }
@@ -485,11 +570,24 @@ export default function PatientFaceRecognitionPage() {
                   muted
                   playsInline
                   className="w-full h-auto"
+                  style={{ minHeight: '300px' }}
                 />
                 <canvas
                   ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full"
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
+                {/* Camera Status Indicator */}
+                <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  Camera Active
+                </div>
+              </div>
+            )}
+            
+            {/* Debug Info */}
+            {cameraActive && (
+              <div className="text-xs text-muted-foreground text-center">
+                Camera is running. If you don't see video, check the browser console (F12) for errors.
               </div>
             )}
           </CardContent>

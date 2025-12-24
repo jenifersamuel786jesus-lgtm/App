@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RemZy Camera Diagnostic Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ccc;
+        }
+        
+        .status-card.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .status-card.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .status-card.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-value {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .video-placeholder {
+            color: #666;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 4px 0;
+        }
+        
+        .log-timestamp {
+            color: #858585;
+            margin-right: 10px;
+        }
+        
+        .log-success {
+            color: #4ec9b0;
+        }
+        
+        .log-error {
+            color: #f48771;
+        }
+        
+        .log-warning {
+            color: #dcdcaa;
+        }
+        
+        .log-info {
+            color: #9cdcfe;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .camera-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 RemZy Camera Diagnostic</h1>
+        <p class="subtitle">Comprehensive camera and browser compatibility checker</p>
+        
+        <!-- Status Cards -->
+        <div class="status-grid">
+            <div class="status-card" id="browserStatus">
+                <div class="status-title">Browser Support</div>
+                <div class="status-value">Checking...</div>
+            </div>
+            <div class="status-card" id="cameraStatus">
+                <div class="status-title">Camera Devices</div>
+                <div class="status-value">Checking...</div>
+            </div>
+            <div class="status-card" id="permissionStatus">
+                <div class="status-title">Permissions</div>
+                <div class="status-value">Not Requested</div>
+            </div>
+            <div class="status-card" id="streamStatus">
+                <div class="status-title">Video Stream</div>
+                <div class="status-value">Inactive</div>
+            </div>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="info-box">
+            <strong>💡 How to use this tool:</strong>
+            Click "Test Back Camera" to check if your camera works. Grant permission when prompted. 
+            If you see video, your camera is working! Check the logs below for detailed information.
+        </div>
+        
+        <!-- Control Buttons -->
+        <div class="button-group">
+            <button class="btn-primary" onclick="testBackCamera()">📷 Test Back Camera</button>
+            <button class="btn-success" onclick="testFrontCamera()">🤳 Test Front Camera</button>
+            <button class="btn-danger" onclick="stopCamera()" disabled id="stopBtn">⏹️ Stop Camera</button>
+        </div>
+        
+        <!-- Video Display -->
+        <div class="section">
+            <div class="section-title">Camera Preview</div>
+            <div class="video-container" id="videoContainer">
+                <div class="video-placeholder">
+                    <h3>📹 No Camera Active</h3>
+                    <p>Click a button above to start testing</p>
+                </div>
+                <video id="video" autoplay playsinline muted style="display: none;"></video>
+            </div>
+        </div>
+        
+        <!-- Diagnostic Log -->
+        <div class="section">
+            <div class="section-title">Diagnostic Log</div>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+    </div>
+    
+    <script>
+        const video = document.getElementById('video');
+        const videoContainer = document.getElementById('videoContainer');
+        const logContainer = document.getElementById('logContainer');
+        const stopBtn = document.getElementById('stopBtn');
+        let currentStream = null;
+        
+        // Logging functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-${type}">${message}</span>
+            `;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function updateStatus(cardId, status, value) {
+            const card = document.getElementById(cardId);
+            card.className = `status-card ${status}`;
+            card.querySelector('.status-value').textContent = value;
+        }
+        
+        // Check browser support
+        function checkBrowserSupport() {
+            log('Checking browser support...', 'info');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                log('❌ getUserMedia not supported in this browser', 'error');
+                updateStatus('browserStatus', 'error', 'Not Supported');
+                return false;
+            }
+            
+            log('✅ getUserMedia is supported', 'success');
+            updateStatus('browserStatus', 'success', 'Supported');
+            
+            // Log browser info
+            log(`Browser: ${navigator.userAgent}`, 'info');
+            log(`Platform: ${navigator.platform}`, 'info');
+            
+            return true;
+        }
+        
+        // Enumerate camera devices
+        async function checkCameraDevices() {
+            log('Enumerating camera devices...', 'info');
+            
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const cameras = devices.filter(device => device.kind === 'videoinput');
+                
+                if (cameras.length === 0) {
+                    log('❌ No camera devices found', 'error');
+                    updateStatus('cameraStatus', 'error', 'None Found');
+                    return;
+                }
+                
+                log(`✅ Found ${cameras.length} camera device(s)`, 'success');
+                updateStatus('cameraStatus', 'success', `${cameras.length} Found`);
+                
+                cameras.forEach((camera, index) => {
+                    const label = camera.label || `Camera ${index + 1} (permission needed for label)`;
+                    log(`  📹 ${label}`, 'info');
+                });
+            } catch (error) {
+                log(`❌ Error enumerating devices: ${error.message}`, 'error');
+                updateStatus('cameraStatus', 'error', 'Error');
+            }
+        }
+        
+        // Test back camera
+        async function testBackCamera() {
+            log('=== Testing Back Camera ===', 'info');
+            log('Requesting back camera access...', 'info');
+            
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment'
+                    },
+                    audio: false
+                };
+                
+                log(`Constraints: ${JSON.stringify(constraints)}`, 'info');
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                log('✅ Camera access granted!', 'success');
+                updateStatus('permissionStatus', 'success', 'Granted');
+                
+                handleStream(stream, 'Back Camera');
+                
+            } catch (error) {
+                handleCameraError(error);
+            }
+        }
+        
+        // Test front camera
+        async function testFrontCamera() {
+            log('=== Testing Front Camera ===', 'info');
+            log('Requesting front camera access...', 'info');
+            
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                };
+                
+                log(`Constraints: ${JSON.stringify(constraints)}`, 'info');
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                log('✅ Camera access granted!', 'success');
+                updateStatus('permissionStatus', 'success', 'Granted');
+                
+                handleStream(stream, 'Front Camera');
+                
+            } catch (error) {
+                handleCameraError(error);
+            }
+        }
+        
+        // Handle successful stream
+        function handleStream(stream, cameraType) {
+            currentStream = stream;
+            
+            log(`Stream obtained: ${stream.id}`, 'success');
+            log(`Active: ${stream.active}`, 'info');
+            log(`Tracks: ${stream.getTracks().length}`, 'info');
+            
+            stream.getTracks().forEach(track => {
+                log(`  Track: ${track.kind} - ${track.label}`, 'info');
+                log(`    Enabled: ${track.enabled}`, 'info');
+                log(`    Muted: ${track.muted}`, 'info');
+                log(`    ReadyState: ${track.readyState}`, 'info');
+                
+                const settings = track.getSettings();
+                log(`    Resolution: ${settings.width}x${settings.height}`, 'info');
+                log(`    FacingMode: ${settings.facingMode || 'not specified'}`, 'info');
+            });
+            
+            // Set video source
+            video.srcObject = stream;
+            video.style.display = 'block';
+            videoContainer.querySelector('.video-placeholder').style.display = 'none';
+            
+            // Add camera indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'camera-indicator';
+            indicator.innerHTML = `<div class="pulse"></div> ${cameraType} Active`;
+            videoContainer.appendChild(indicator);
+            
+            // Enable stop button
+            stopBtn.disabled = false;
+            
+            updateStatus('streamStatus', 'success', 'Active');
+            
+            // Wait for video to load
+            video.onloadedmetadata = () => {
+                log('✅ Video metadata loaded', 'success');
+                log(`Video dimensions: ${video.videoWidth}x${video.videoHeight}`, 'info');
+                
+                video.play().then(() => {
+                    log('✅ Video playback started', 'success');
+                }).catch(err => {
+                    log(`❌ Error starting playback: ${err.message}`, 'error');
+                });
+            };
+            
+            video.onplay = () => {
+                log('✅ Video is playing', 'success');
+            };
+            
+            video.onerror = (err) => {
+                log(`❌ Video error: ${err}`, 'error');
+            };
+        }
+        
+        // Handle camera errors
+        function handleCameraError(error) {
+            log(`❌ Camera error: ${error.name}`, 'error');
+            log(`   Message: ${error.message}`, 'error');
+            
+            updateStatus('permissionStatus', 'error', 'Denied');
+            updateStatus('streamStatus', 'error', 'Failed');
+            
+            let solution = '';
+            
+            switch (error.name) {
+                case 'NotAllowedError':
+                    solution = 'Camera permission was denied. Click the camera icon in your browser address bar and select "Allow".';
+                    break;
+                case 'NotFoundError':
+                    solution = 'No camera found on this device. Please ensure your device has a camera.';
+                    break;
+                case 'NotReadableError':
+                    solution = 'Camera is in use by another application. Close other apps using the camera and try again.';
+                    break;
+                case 'OverconstrainedError':
+                    solution = 'Camera does not support the requested settings. Try the other camera button.';
+                    break;
+                case 'SecurityError':
+                    solution = 'Camera access blocked by security policy. Ensure you are using HTTPS or localhost.';
+                    break;
+                default:
+                    solution = 'Unknown error. Check browser console for details.';
+            }
+            
+            log(`💡 Solution: ${solution}`, 'warning');
+        }
+        
+        // Stop camera
+        function stopCamera() {
+            log('Stopping camera...', 'info');
+            
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => {
+                    track.stop();
+                    log(`Stopped track: ${track.kind}`, 'info');
+                });
+                
+                video.srcObject = null;
+                video.style.display = 'none';
+                videoContainer.querySelector('.video-placeholder').style.display = 'block';
+                
+                // Remove indicator
+                const indicator = videoContainer.querySelector('.camera-indicator');
+                if (indicator) indicator.remove();
+                
+                currentStream = null;
+                stopBtn.disabled = true;
+                
+                updateStatus('streamStatus', 'warning', 'Stopped');
+                log('✅ Camera stopped', 'success');
+            }
+        }
+        
+        // Initialize
+        window.onload = () => {
+            log('🚀 RemZy Camera Diagnostic Tool Started', 'success');
+            log('='.repeat(50), 'info');
+            
+            if (checkBrowserSupport()) {
+                checkCameraDevices();
+            }
+            
+            log('='.repeat(50), 'info');
+            log('Ready to test cameras. Click a button above to begin.', 'info');
+        };
+        
+        // Cleanup on page unload
+        window.onbeforeunload = () => {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        };
+    </script>
+</body>
+</html>
