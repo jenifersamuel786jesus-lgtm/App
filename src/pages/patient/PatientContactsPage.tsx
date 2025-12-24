@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Users, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Users, UserPlus, Camera, Upload, X } from 'lucide-react';
 import { getPatientByProfileId, getKnownFaces, createKnownFace } from '@/db/api';
 import type { Patient, KnownFace } from '@/types/types';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,8 @@ export default function PatientContactsPage() {
   const [contacts, setContacts] = useState<KnownFace[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [newContact, setNewContact] = useState({
     person_name: '',
     relationship: '',
@@ -43,6 +45,57 @@ export default function PatientContactsPage() {
     setLoading(false);
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid File',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File Too Large',
+        description: 'Please select an image smaller than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setPhotoUrl(result);
+      toast({
+        title: 'Photo Added',
+        description: 'Photo uploaded successfully',
+      });
+    };
+    reader.onerror = () => {
+      toast({
+        title: 'Upload Failed',
+        description: 'Could not read the image file',
+        variant: 'destructive',
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleCreateContact = async () => {
     if (!patient || !newContact.person_name) {
       toast({
@@ -59,6 +112,7 @@ export default function PatientContactsPage() {
       relationship: newContact.relationship || null,
       notes: newContact.notes || null,
       face_encoding: null,
+      photo_url: photoUrl,
     });
 
     if (contact) {
@@ -68,6 +122,10 @@ export default function PatientContactsPage() {
       });
       setDialogOpen(false);
       setNewContact({ person_name: '', relationship: '', notes: '' });
+      setPhotoUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       loadData();
     }
   };
@@ -99,14 +157,68 @@ export default function PatientContactsPage() {
                 Add Contact
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Add New Contact</DialogTitle>
-                <DialogDescription>Save information about someone you know</DialogDescription>
+                <DialogTitle className="text-2xl">Add New Contact</DialogTitle>
+                <DialogDescription className="text-base">
+                  Save information about someone you know
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
+                {/* Photo Upload Section */}
+                <div className="space-y-3">
+                  <Label className="text-base">Photo (Optional)</Label>
+                  <div className="flex flex-col items-center gap-3">
+                    {photoUrl ? (
+                      <div className="relative">
+                        <img 
+                          src={photoUrl} 
+                          alt="Contact photo" 
+                          className="w-32 h-32 rounded-full object-cover border-4 border-primary"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 rounded-full w-8 h-8"
+                          onClick={handleRemovePhoto}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-muted border-4 border-dashed border-border flex items-center justify-center">
+                        <Camera className="w-12 h-12 text-muted-foreground" />
+                      </div>
+                    )}
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    
+                    <Button
+                      type="button"
+                      variant={photoUrl ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      {photoUrl ? 'Change Photo' : 'Upload Photo'}
+                    </Button>
+                    
+                    <p className="text-xs text-muted-foreground text-center">
+                      JPG, PNG or GIF (max 5MB)
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="person_name">Name *</Label>
+                  <Label htmlFor="person_name" className="text-base">Name *</Label>
                   <Input
                     id="person_name"
                     value={newContact.person_name}
@@ -116,7 +228,7 @@ export default function PatientContactsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="relationship">Relationship</Label>
+                  <Label htmlFor="relationship" className="text-base">Relationship</Label>
                   <Input
                     id="relationship"
                     value={newContact.relationship}
@@ -126,7 +238,7 @@ export default function PatientContactsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
+                  <Label htmlFor="notes" className="text-base">Notes</Label>
                   <Textarea
                     id="notes"
                     value={newContact.notes}
@@ -135,9 +247,30 @@ export default function PatientContactsPage() {
                     className="text-lg min-h-24"
                   />
                 </div>
-                <Button onClick={handleCreateContact} className="w-full h-12" size="lg">
-                  Add Contact
-                </Button>
+                <div className="flex gap-3 pt-2">
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => {
+                      setDialogOpen(false);
+                      setNewContact({ person_name: '', relationship: '', notes: '' });
+                      setPhotoUrl(null);
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }} 
+                    className="flex-1 h-12"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateContact} 
+                    className="flex-1 h-12"
+                    disabled={!newContact.person_name.trim()}
+                  >
+                    Add Contact
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
@@ -169,11 +302,19 @@ export default function PatientContactsPage() {
               <Card key={contact.id}>
                 <CardHeader>
                   <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl font-bold text-primary">
-                        {getInitials(contact.person_name)}
-                      </span>
-                    </div>
+                    {contact.photo_url ? (
+                      <img 
+                        src={contact.photo_url} 
+                        alt={contact.person_name}
+                        className="w-16 h-16 rounded-full object-cover flex-shrink-0 border-2 border-border"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-2xl font-bold text-primary">
+                          {getInitials(contact.person_name)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex-1">
                       <CardTitle className="text-2xl">{contact.person_name}</CardTitle>
                       {contact.relationship && (
