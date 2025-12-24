@@ -13,6 +13,7 @@ import PatientTasksPage from './pages/patient/PatientTasksPage';
 import PatientContactsPage from './pages/patient/PatientContactsPage';
 import PatientHealthPage from './pages/patient/PatientHealthPage';
 import PatientSettingsPage from './pages/patient/PatientSettingsPage';
+import PatientFaceRecognitionPage from './pages/patient/PatientFaceRecognitionPage';
 
 // Caregiver pages
 import CaregiverSetupPage from './pages/caregiver/CaregiverSetupPage';
@@ -77,6 +78,11 @@ const routes: RouteConfig[] = [
     name: 'Patient Settings',
     path: '/patient/settings',
     element: <PatientSettingsPage />
+  },
+  {
+    name: 'Face Recognition',
+    path: '/patient/face-recognition',
+    element: <PatientFaceRecognitionPage />
   },
   // Caregiver routes
   {

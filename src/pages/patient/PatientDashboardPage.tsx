@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, MessageCircle, CheckSquare, Users, AlertCircle, Activity, LogOut, Settings } from 'lucide-react';
+import { Heart, MessageCircle, CheckSquare, Users, AlertCircle, Activity, LogOut, Settings, Camera } from 'lucide-react';
 import { getPatientByProfileId, getTasks, getKnownFaces, getHealthMetrics } from '@/db/api';
 import type { Patient, Task, KnownFace, HealthMetric } from '@/types/types';
 
@@ -158,6 +158,18 @@ export default function PatientDashboardPage() {
               <CardDescription className="text-sm">
                 {latestMetric ? `${latestMetric.heart_rate} bpm` : 'No data'}
               </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/face-recognition')}>
+            <CardHeader className="text-center pb-3">
+              <div className="flex justify-center mb-2">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Camera className="w-8 h-8 text-primary" />
+                </div>
+              </div>
+              <CardTitle className="text-lg">Face Recognition</CardTitle>
+              <CardDescription className="text-sm">Recognize people</CardDescription>
             </CardHeader>
           </Card>
         </div>
