@@ -1,91 +1,178 @@
-# Welcome to Your Miaoda Project
+# RemZy - Alzheimer's Care Application
 
-## Project Info
+RemZy is a comprehensive mobile-first web application designed to support Alzheimer's patients through real-time memory assistance, safety monitoring, and emotional support. The system operates across two strictly separated device modes (Patient Mode and Caregiver Mode) with secure device linking.
 
-## Project Directory
+## Features
 
-```
-├── README.md # Documentation
-├── components.json # Component library configuration
-├── index.html # Entry file
-├── package.json # Package management
-├── postcss.config.js # PostCSS configuration
-├── public # Static resources directory
-│   ├── favicon.png # Icon
-│   └── images # Image resources
-├── src # Source code directory
-│   ├── App.tsx # Entry file
-│   ├── components # Components directory
-│   ├── context # Context directory
-│   ├── db # Database configuration directory
-│   ├── hooks # Common hooks directory
-│   ├── index.css # Global styles
-│   ├── layout # Layout directory
-│   ├── lib # Utility library directory
-│   ├── main.tsx # Entry file
-│   ├── routes.tsx # Routing configuration
-│   ├── pages # Pages directory
-│   ├── services # Database interaction directory
-│   ├── types # Type definitions directory
-├── tsconfig.app.json # TypeScript frontend configuration file
-├── tsconfig.json # TypeScript configuration file
-├── tsconfig.node.json # TypeScript Node.js configuration file
-└── vite.config.ts # Vite configuration file
-```
+### Patient Mode
+- **AI Companion**: Interactive chat interface for memory assistance and orientation
+- **Device Setup**: Easy onboarding with QR code generation for caregiver linking
+- **Dashboard**: Large, accessible interface with clear navigation
+- **Task Management**: View and manage daily tasks and reminders
+- **Contacts**: Manage known faces and relationships
+- **Health Monitoring**: Track health metrics and activity
+- **Emergency Button**: Quick access to emergency assistance
 
-## Tech Stack
+### Caregiver Mode
+- **Dashboard**: Real-time monitoring of linked patients
+- **Alert System**: Instant notifications for important events
+- **Patient Management**: Link and manage multiple patient devices
+- **Activity Logs**: Comprehensive history of patient activities
+- **Health Reports**: View patient health metrics and trends
+- **Device Linking**: Secure pairing with patient devices via linking code
 
-Vite, TypeScript, React, Supabase
+## Technology Stack
 
-## Development Guidelines
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Backend**: Supabase (PostgreSQL + Auth + RLS)
+- **Routing**: React Router v6
+- **State Management**: React Context API
+- **QR Codes**: qrcode library
 
-### How to edit code locally?
+## Database Schema
 
-You can choose [VSCode](https://code.visualstudio.com/Download) or any IDE you prefer. The only requirement is to have Node.js and npm installed.
+### Core Tables
+- `profiles`: User profiles with role-based access (patient/caregiver/admin)
+- `patients`: Patient-specific data including safe areas and health thresholds
+- `caregivers`: Caregiver information and device details
+- `device_links`: Many-to-many relationships between patients and caregivers
+- `tasks`: Patient tasks with reminders and status tracking
+- `known_faces`: Saved contacts for face recognition
+- `unknown_encounters`: Log of unknown person encounters
+- `health_metrics`: Heart rate, steps, and activity tracking
+- `ai_interactions`: Conversation history with AI companion
+- `activity_logs`: Comprehensive activity tracking
+- `alerts`: System and emergency alerts
 
-### Environment Requirements
+### Security
+- Row Level Security (RLS) policies on all tables
+- Role-based access control (patient/caregiver/admin)
+- Secure device linking with unique codes
+- End-to-end data protection
 
-```
-# Node.js ≥ 20
-# npm ≥ 10
-Example:
-# node -v   # v20.18.3
-# npm -v    # 10.8.2
-```
+## Getting Started
 
-### Installing Node.js on Windows
+### Prerequisites
+- Node.js 18+ and pnpm
+- Supabase account (automatically configured)
 
-```
-# Step 1: Visit the Node.js official website: https://nodejs.org/, click download. The website will automatically suggest a suitable version (32-bit or 64-bit) for your system.
-# Step 2: Run the installer: Double-click the downloaded installer to run it.
-# Step 3: Complete the installation: Follow the installation wizard to complete the process.
-# Step 4: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
-```
+### Installation
 
-### Installing Node.js on macOS
-
-```
-# Step 1: Using Homebrew (Recommended method): Open Terminal. Type the command `brew install node` and press Enter. If Homebrew is not installed, you need to install it first by running the following command in Terminal:
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-Alternatively, use the official installer: Visit the Node.js official website. Download the macOS .pkg installer. Open the downloaded .pkg file and follow the prompts to complete the installation.
-# Step 2: Verify installation: Open Command Prompt (cmd) or your IDE terminal, and type `node -v` and `npm -v` to check if Node.js and npm are installed correctly.
+1. Install dependencies:
+```bash
+pnpm install
 ```
 
-### After installation, follow these steps:
-
-```
-# Step 1: Download the code package
-# Step 2: Extract the code package
-# Step 3: Open the code package with your IDE and navigate into the code directory
-# Step 4: In the IDE terminal, run the command to install dependencies: npm i
-# Step 5: In the IDE terminal, run the command to start the development server: npm run dev -- --host 127.0.0.1
-# Step 6: if step 5 failed, try this command to start the development server: npx vite --host 127.0.0.1
+2. Start development server:
+```bash
+pnpm dev
 ```
 
-### How to develop backend services?
+3. Build for production:
+```bash
+pnpm build
+```
 
-Configure environment variables and install relevant dependencies.If you need to use a database, please use the official version of Supabase.
+### First User Setup
 
-## Learn More
+The first user to register automatically becomes an admin. Subsequent users default to patient role but can select their mode (patient or caregiver) after login.
 
-You can also check the help documentation: Download and Building the app（ [https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en](https://intl.cloud.baidu.com/en/doc/MIAODA/s/download-and-building-the-app-en)）to learn more detailed content.
+## User Flows
+
+### Patient Flow
+1. Sign up / Sign in
+2. Select "Patient Mode"
+3. Complete patient setup (name, safe area, etc.)
+4. Receive linking code and QR code
+5. Share code with caregiver
+6. Access patient dashboard and features
+
+### Caregiver Flow
+1. Sign up / Sign in
+2. Select "Caregiver Mode"
+3. Complete caregiver setup
+4. Enter patient linking code
+5. Access caregiver dashboard
+6. Monitor linked patients and receive alerts
+
+## Design System
+
+### Colors
+- **Patient Mode**: Calming blues and soft greens for reduced anxiety
+- **Caregiver Mode**: Professional grays and whites for clarity
+- **Emergency**: Red for urgent actions
+- **Success**: Green for completed tasks
+- **Warning**: Yellow/orange for alerts
+
+### Typography
+- Large, high-contrast fonts for patient interface
+- Standard professional fonts for caregiver dashboard
+- Minimum 60px touch targets for patient mode
+
+## API Integration Points
+
+The application is designed to integrate with:
+- **Face Recognition API**: For identifying known faces (placeholder UI implemented)
+- **AI/LLM API**: For intelligent companion responses (simulated responses implemented)
+- **Text-to-Speech API**: For audio guidance (UI ready)
+- **Location Services**: For GPS tracking and safe area monitoring
+- **Health Data APIs**: For wearable integration
+
+## Development
+
+### Project Structure
+```
+src/
+├── components/
+│   ├── ui/              # shadcn/ui components
+│   ├── patient/         # Patient-specific components
+│   ├── caregiver/       # Caregiver-specific components
+│   ├── layouts/         # Layout components
+│   └── common/          # Shared components
+├── pages/
+│   ├── auth/            # Authentication pages
+│   ├── patient/         # Patient mode pages
+│   └── caregiver/       # Caregiver mode pages
+├── contexts/            # React contexts (Auth)
+├── db/                  # Database client and API
+├── types/               # TypeScript type definitions
+└── routes.tsx           # Route configuration
+```
+
+### Key Files
+- `src/db/supabase.ts`: Supabase client configuration
+- `src/db/api.ts`: Database API functions
+- `src/contexts/AuthContext.tsx`: Authentication context
+- `src/types/types.ts`: TypeScript type definitions
+- `src/routes.tsx`: Application routes
+
+## Deployment
+
+The application is production-ready and can be deployed to:
+- Vercel
+- Netlify
+- Any static hosting service
+
+Supabase backend is automatically configured and deployed.
+
+## Future Enhancements
+
+- Real face recognition integration
+- Advanced AI companion with LLM integration
+- Push notifications for mobile devices
+- Offline mode support
+- Voice commands
+- Multi-language support
+- Advanced health analytics
+- Video calling between patient and caregiver
+- Medication reminders with image recognition
+- GPS tracking with real-time location updates
+
+## License
+
+Copyright © 2025 RemZy
+
+## Support
+
+For issues and questions, please refer to the documentation or contact support.

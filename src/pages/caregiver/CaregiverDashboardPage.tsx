@@ -1,0 +1,301 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Shield, Users, Bell, Activity, FileText, Settings, LogOut, AlertTriangle, MapPin } from 'lucide-react';
+import { getCaregiverByProfileId, getLinkedPatients, getCaregiverAlerts } from '@/db/api';
+import type { Caregiver, PatientWithProfile, AlertWithPatient } from '@/types/types';
+
+export default function CaregiverDashboardPage() {
+  const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [caregiver, setCaregiver] = useState<Caregiver | null>(null);
+  const [patients, setPatients] = useState<PatientWithProfile[]>([]);
+  const [alerts, setAlerts] = useState<AlertWithPatient[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCaregiverData();
+  }, [profile]);
+
+  const loadCaregiverData = async () => {
+    if (!profile) return;
+    
+    setLoading(true);
+    const caregiverData = await getCaregiverByProfileId(profile.id);
+    
+    if (!caregiverData) {
+      navigate('/caregiver/setup');
+      return;
+    }
+    
+    setCaregiver(caregiverData);
+    
+    // Load linked patients and alerts
+    const [patientsData, alertsData] = await Promise.all([
+      getLinkedPatients(caregiverData.id),
+      getCaregiverAlerts(caregiverData.id, 10),
+    ]);
+    
+    setPatients(patientsData);
+    setAlerts(alertsData);
+    setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case 'emergency':
+        return <AlertTriangle className="w-5 h-5 text-emergency" />;
+      case 'safe_area_breach':
+        return <MapPin className="w-5 h-5 text-warning" />;
+      default:
+        return <Bell className="w-5 h-5 text-primary" />;
+    }
+  };
+
+  const getAlertBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'unread':
+        return 'destructive';
+      case 'read':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  const unreadAlerts = alerts.filter(a => a.alert_status === 'unread').length;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-secondary" />
+            <h1 className="text-xl font-bold">RemZy Caregiver</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/caregiver/settings')}>
+              <Settings className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-6xl">
+        {/* Welcome Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Welcome, {caregiver?.full_name}!</CardTitle>
+            <CardDescription>
+              Monitoring {patients.length} {patients.length === 1 ? 'patient' : 'patients'}
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {/* Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Linked Patients</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{patients.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Active connections
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Unread Alerts</CardTitle>
+              <Bell className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{unreadAlerts}</div>
+              <p className="text-xs text-muted-foreground">
+                Requires attention
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Alerts</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{alerts.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Last 24 hours
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/patients')}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Manage Patients</CardTitle>
+                  <CardDescription>View and link patient devices</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/alerts')}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-warning" />
+                </div>
+                <div>
+                  <CardTitle>View All Alerts</CardTitle>
+                  <CardDescription>{unreadAlerts} unread notifications</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/activity-logs')}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle>Activity Logs</CardTitle>
+                  <CardDescription>View patient activity history</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/reports')}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Health Reports</CardTitle>
+                  <CardDescription>View health metrics and trends</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* Recent Alerts */}
+        {alerts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Alerts</CardTitle>
+              <CardDescription>Latest notifications from your patients</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {alerts.slice(0, 5).map((alert) => (
+                <div key={alert.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+                  {getAlertIcon(alert.alert_type)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium truncate">{alert.title}</p>
+                      <Badge variant={getAlertBadgeVariant(alert.alert_status)} className="shrink-0">
+                        {alert.alert_status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{alert.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(alert.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {alerts.length > 5 && (
+                <Button variant="outline" className="w-full" onClick={() => navigate('/caregiver/alerts')}>
+                  View All Alerts ({alerts.length})
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Linked Patients */}
+        {patients.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Linked Patients</CardTitle>
+              <CardDescription>Patients you are monitoring</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {patients.map((patient) => (
+                <div 
+                  key={patient.id} 
+                  className="flex items-center gap-3 p-4 bg-muted rounded-lg cursor-pointer hover:bg-muted/80 transition-colors"
+                  onClick={() => navigate(`/caregiver/patient/${patient.id}`)}
+                >
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{patient.full_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Linked {new Date(patient.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    View Details
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Patients Message */}
+        {patients.length === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Linked Patients</CardTitle>
+              <CardDescription>
+                You haven't linked any patient devices yet
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate('/caregiver/link-patient')} className="w-full">
+                Link Patient Device
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
