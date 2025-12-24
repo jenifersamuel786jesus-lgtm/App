@@ -166,9 +166,10 @@ export default function PatientFaceRecognitionPage() {
         });
       } else {
         console.error('Video ref is null!');
+        console.error('This should not happen. Video element should always be rendered.');
         toast({
-          title: 'Error',
-          description: 'Video element not found. Please refresh the page.',
+          title: 'Video Element Error',
+          description: 'Camera setup failed. Please refresh the page and try again.',
           variant: 'destructive',
         });
       }
@@ -562,27 +563,27 @@ export default function PatientFaceRecognitionPage() {
             </div>
 
             {/* Camera Feed */}
-            {cameraActive && (
-              <div className="relative bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-auto"
-                  style={{ minHeight: '300px' }}
-                />
-                <canvas
-                  ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
-                />
-                {/* Camera Status Indicator */}
+            <div className={`relative bg-black rounded-lg overflow-hidden ${!cameraActive ? 'hidden' : ''}`}>
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-auto"
+                style={{ minHeight: '300px' }}
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              />
+              {/* Camera Status Indicator */}
+              {cameraActive && (
                 <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                   Camera Active
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             
             {/* Debug Info */}
             {cameraActive && (
