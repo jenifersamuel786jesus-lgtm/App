@@ -408,6 +408,50 @@ export default function PatientFaceRecognitionPage() {
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
       setCapturedImage(imageData);
       setFaceDescriptor(descriptor);
+      console.log('Face snapshot captured:', imageData.substring(0, 50) + '...');
+    }
+  };
+
+  const manualCapturePhoto = async () => {
+    if (!videoRef.current || !modelsLoaded) {
+      toast({
+        title: 'Camera Not Ready',
+        description: 'Please start the camera first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Detect face to get descriptor
+      const detections = await faceapi
+        .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detections) {
+        toast({
+          title: 'No Face Detected',
+          description: 'Please ensure a face is clearly visible in the camera.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Capture the photo
+      captureSnapshot(detections.descriptor);
+      
+      toast({
+        title: 'Photo Captured',
+        description: 'Face photo captured successfully.',
+      });
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+      toast({
+        title: 'Capture Failed',
+        description: 'Could not capture photo. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -585,6 +629,19 @@ export default function PatientFaceRecognitionPage() {
               )}
             </div>
             
+            {/* Manual Add Person Button */}
+            {cameraActive && (
+              <Button
+                onClick={() => setShowSaveDialog(true)}
+                variant="outline"
+                size="lg"
+                className="w-full h-14 text-base gap-2"
+              >
+                <User className="w-5 h-5" />
+                Add Person Manually
+              </Button>
+            )}
+            
             {/* Debug Info */}
             {cameraActive && (
               <div className="text-xs text-muted-foreground text-center">
@@ -731,15 +788,46 @@ export default function PatientFaceRecognitionPage() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {capturedImage && (
-              <div className="flex justify-center">
-                <img 
-                  src={capturedImage} 
-                  alt="Captured face" 
-                  className="w-32 h-32 rounded-full object-cover border-4 border-border"
-                />
+            {/* Photo Preview and Capture */}
+            <div className="space-y-3">
+              <Label className="text-base">Photo</Label>
+              <div className="flex flex-col items-center gap-3">
+                {capturedImage ? (
+                  <div className="relative">
+                    <img 
+                      src={capturedImage} 
+                      alt="Captured face" 
+                      className="w-32 h-32 rounded-full object-cover border-4 border-primary"
+                    />
+                    <div className="absolute -bottom-2 -right-2 bg-green-500 text-white rounded-full p-2">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-muted border-4 border-dashed border-border flex items-center justify-center">
+                    <User className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
+                
+                <Button
+                  type="button"
+                  variant={capturedImage ? "outline" : "default"}
+                  size="sm"
+                  onClick={manualCapturePhoto}
+                  disabled={!cameraActive}
+                  className="gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  {capturedImage ? 'Retake Photo' : 'Capture Photo'}
+                </Button>
+                
+                {!cameraActive && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Camera must be active to capture photo
+                  </p>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="name" className="text-base">Name *</Label>
@@ -785,6 +873,7 @@ export default function PatientFaceRecognitionPage() {
             </Button>
             <Button
               onClick={handleSaveNewFace}
+              disabled={!newFaceName.trim() || !faceDescriptor}
               className="flex-1 h-12 text-base"
             >
               Save Person
