@@ -29,10 +29,12 @@ export default function PatientFaceRecognitionPage() {
     name?: string;
     confidence?: number;
     faceId?: string;
+    aiAnalysis?: string;
   } | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [faceDescriptor, setFaceDescriptor] = useState<Float32Array | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
   
   // Form state for saving new face
   const [newFaceName, setNewFaceName] = useState('');
@@ -305,6 +307,17 @@ export default function PatientFaceRecognitionPage() {
     // Match against known faces
     const match = await matchFace(descriptor);
 
+    // Capture snapshot for AI analysis
+    const snapshotCanvas = document.createElement('canvas');
+    snapshotCanvas.width = video.videoWidth;
+    snapshotCanvas.height = video.videoHeight;
+    const snapshotCtx = snapshotCanvas.getContext('2d');
+    let snapshotImage = '';
+    if (snapshotCtx) {
+      snapshotCtx.drawImage(video, 0, 0);
+      snapshotImage = snapshotCanvas.toDataURL('image/jpeg', 0.8);
+    }
+
     if (match.isKnown && match.name) {
       // Known face detected
       setCurrentDetection({
@@ -316,6 +329,14 @@ export default function PatientFaceRecognitionPage() {
       
       whisper(`Hello, this is ${match.name}`);
       
+      // Get AI analysis for known person
+      if (snapshotImage) {
+        const aiAnalysis = await analyzeWithAI(snapshotImage, true, match.name);
+        if (aiAnalysis) {
+          setCurrentDetection(prev => prev ? { ...prev, aiAnalysis } : null);
+        }
+      }
+      
       // Update last_seen for this face
       if (match.faceId) {
         await updateKnownFace(match.faceId, {
@@ -324,15 +345,25 @@ export default function PatientFaceRecognitionPage() {
       }
     } else {
       // Unknown face detected
-      setCurrentDetection({
-        isKnown: false,
-        confidence: 0,
-      });
-      
       whisper('You are meeting someone new. Would you like to save this person?');
       
       // Capture image for saving
       captureSnapshot(descriptor);
+      
+      // Get AI analysis for unknown person
+      if (snapshotImage) {
+        const aiAnalysis = await analyzeWithAI(snapshotImage, false);
+        setCurrentDetection({
+          isKnown: false,
+          confidence: 0,
+          aiAnalysis,
+        });
+      } else {
+        setCurrentDetection({
+          isKnown: false,
+          confidence: 0,
+        });
+      }
       
       // Log unknown encounter
       if (patient) {
@@ -392,6 +423,86 @@ export default function PatientFaceRecognitionPage() {
     }
 
     return { isKnown: false };
+  };
+
+  const analyzeWithAI = async (imageBase64: string, isKnown: boolean, personName?: string): Promise<string> => {
+    try {
+      setAiAnalyzing(true);
+      
+      const APP_ID = import.meta.env.VITE_APP_ID;
+      
+      // Remove data:image/jpeg;base64, prefix if present
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      
+      const prompt = isKnown 
+        ? `You are assisting an Alzheimer's patient. This is ${personName}, someone they know. Provide a brief, warm reminder about this person in 1-2 sentences. Be reassuring and friendly.`
+        : `You are assisting an Alzheimer's patient. They are meeting someone new. Analyze this person's appearance and provide a brief, helpful description in 1-2 sentences that could help the patient remember them later. Focus on distinctive features like clothing, hair, or accessories. Be warm and reassuring.`;
+
+      const response = await fetch(
+        'https://api-integrations.appmedo.com/app-8g7cyjjxisxt/api-rLob8RdzAOl9/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-App-Id': APP_ID,
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: 'image/jpeg',
+                      data: base64Data,
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('AI analysis failed');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const jsonData = JSON.parse(line.slice(6));
+                if (jsonData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                  fullText += jsonData.candidates[0].content.parts[0].text;
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+      }
+
+      return fullText.trim() || 'AI analysis unavailable';
+    } catch (error) {
+      console.error('Error analyzing with AI:', error);
+      return '';
+    } finally {
+      setAiAnalyzing(false);
+    }
   };
 
   const captureSnapshot = (descriptor: Float32Array) => {
@@ -677,8 +788,31 @@ export default function PatientFaceRecognitionPage() {
                 </div>
               </div>
             </CardHeader>
-            {!currentDetection.isKnown && (
-              <CardContent>
+            <CardContent className="space-y-4">
+              {/* AI Analysis */}
+              {aiAnalyzing && (
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    <span>AI is analyzing...</span>
+                  </div>
+                </div>
+              )}
+              
+              {currentDetection.aiAnalysis && !aiAnalyzing && (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-xs font-bold text-primary">AI</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-base leading-relaxed">{currentDetection.aiAnalysis}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {!currentDetection.isKnown && (
                 <Button
                   onClick={() => setShowSaveDialog(true)}
                   size="lg"
@@ -686,8 +820,8 @@ export default function PatientFaceRecognitionPage() {
                 >
                   Save This Person
                 </Button>
-              </CardContent>
-            )}
+              )}
+            </CardContent>
           </Card>
         )}
 
@@ -861,6 +995,22 @@ export default function PatientFaceRecognitionPage() {
                 className="min-h-20 text-base"
               />
             </div>
+            
+            {/* AI Suggestion Hint */}
+            {currentDetection?.aiAnalysis && (
+              <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-primary">AI</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">AI Tip:</span> {currentDetection.aiAnalysis}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3">
