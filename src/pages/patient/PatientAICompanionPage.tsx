@@ -36,26 +36,128 @@ export default function AICompanionPage() {
     
     setLoading(true);
     
-    // Simulate AI response
-    const responses = [
-      `Hello! Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}. How can I help you?`,
-      `You are ${patient.full_name}. Is there anything you'd like to know?`,
-      `I'm here to help you remember important things. What would you like to know?`,
-      `Let me check your schedule for today...`,
-    ];
-    
-    const aiResponse = responses[Math.floor(Math.random() * responses.length)];
-    
-    await createAIInteraction({
-      patient_id: patient.id,
-      user_query: message,
-      ai_response: aiResponse,
-      interaction_type: 'chat',
+    try {
+      // Get real AI response from Gemini API
+      const aiResponse = await getAIResponse(message, patient);
+      
+      await createAIInteraction({
+        patient_id: patient.id,
+        user_query: message,
+        ai_response: aiResponse,
+        interaction_type: 'chat',
+      });
+      
+      await loadData();
+      setMessage('');
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      // Fallback response if AI fails
+      await createAIInteraction({
+        patient_id: patient.id,
+        user_query: message,
+        ai_response: "I'm here to help you. Could you please rephrase your question?",
+        interaction_type: 'chat',
+      });
+      await loadData();
+      setMessage('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAIResponse = async (userMessage: string, patient: Patient): Promise<string> => {
+    const APP_ID = import.meta.env.VITE_APP_ID || 'app-8g7cyjjxisxt';
+    const API_URL = `https://api-integrations.appmedo.com/${APP_ID}/api-rLob8RdzAOl9/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse`;
+
+    // Get current date and time for context
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
     });
-    
-    await loadData();
-    setMessage('');
-    setLoading(false);
+    const timeStr = now.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    });
+
+    // Create context-aware prompt
+    const systemPrompt = `You are a compassionate AI companion assisting ${patient.full_name}, a person with Alzheimer's disease. 
+
+Current Context:
+- Patient Name: ${patient.full_name}
+- Current Date: ${dateStr}
+- Current Time: ${timeStr}
+
+Your role:
+1. Provide gentle reminders about identity, time, and place
+2. Answer questions with patience and clarity
+3. Use simple, reassuring language
+4. Be warm, friendly, and supportive
+5. Help with orientation (who, what, when, where)
+6. Keep responses brief (2-3 sentences max)
+
+Common questions you should answer:
+- "What day is it?" → Tell the current date
+- "Who am I?" → Remind them they are ${patient.full_name}
+- "What time is it?" → Tell the current time
+- "Where am I?" → Provide reassurance about their location
+
+User's question: ${userMessage}
+
+Respond in a warm, helpful, and reassuring manner.`;
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-App-Id': APP_ID,
+      },
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: [{ text: systemPrompt }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('AI API request failed');
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    let fullResponse = '';
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            const jsonStr = line.slice(6);
+            const data = JSON.parse(jsonStr);
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              fullResponse += text;
+            }
+          } catch (e) {
+            // Skip invalid JSON
+          }
+        }
+      }
+    }
+
+    return fullResponse.trim() || "I'm here to help you. How can I assist you today?";
   };
 
   return (
