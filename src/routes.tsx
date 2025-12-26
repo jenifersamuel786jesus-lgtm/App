@@ -14,12 +14,14 @@ import PatientContactsPage from './pages/patient/PatientContactsPage';
 import PatientHealthPage from './pages/patient/PatientHealthPage';
 import PatientSettingsPage from './pages/patient/PatientSettingsPage';
 import PatientFaceRecognitionPage from './pages/patient/PatientFaceRecognitionPage';
+import PatientEmergencyPage from './pages/patient/PatientEmergencyPage';
 
 // Caregiver pages
 import CaregiverSetupPage from './pages/caregiver/CaregiverSetupPage';
 import CaregiverDashboardPage from './pages/caregiver/CaregiverDashboardPage';
 import CaregiverPatientsPage from './pages/caregiver/CaregiverPatientsPage';
 import CaregiverPatientDetailsPage from './pages/caregiver/CaregiverPatientDetailsPage';
+import CaregiverAlertsPage from './pages/caregiver/CaregiverAlertsPage';
 
 interface RouteConfig {
   name: string;
@@ -85,6 +87,11 @@ const routes: RouteConfig[] = [
     path: '/patient/face-recognition',
     element: <PatientFaceRecognitionPage />
   },
+  {
+    name: 'Emergency',
+    path: '/patient/emergency',
+    element: <PatientEmergencyPage />
+  },
   // Caregiver routes
   {
     name: 'Caregiver Setup',
@@ -105,6 +112,11 @@ const routes: RouteConfig[] = [
     name: 'Patient Details',
     path: '/caregiver/patient/:patientId',
     element: <CaregiverPatientDetailsPage />
+  },
+  {
+    name: 'Alerts',
+    path: '/caregiver/alerts',
+    element: <CaregiverAlertsPage />
   },
 ];
 
