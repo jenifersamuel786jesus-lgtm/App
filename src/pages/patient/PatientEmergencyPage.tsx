@@ -27,6 +27,15 @@ export default function PatientEmergencyPage() {
     getLocation();
   }, [profile]);
 
+  useEffect(() => {
+    // Proactive guidance when emergency page loads
+    if (patient && !loading) {
+      setTimeout(() => {
+        whisper(`This is the emergency help page. Press the large red button only if you need immediate help. Your caregivers will be notified right away.`);
+      }, 1500);
+    }
+  }, [patient, loading]);
+
   const loadData = async () => {
     if (!profile) return;
     

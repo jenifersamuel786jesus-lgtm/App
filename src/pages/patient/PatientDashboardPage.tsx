@@ -26,15 +26,79 @@ export default function PatientDashboardPage() {
     // Welcome whisper when dashboard loads
     if (patient && !loading) {
       const greeting = getGreeting();
-      whisper(`${greeting}, ${patient.full_name}. Welcome to your dashboard.`);
+      const today = new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      // Initial welcome with date and time
+      whisper(`${greeting}, ${patient.full_name}. Today is ${today}. Welcome to your dashboard.`);
+      
+      // Proactive guidance after 5 seconds
+      setTimeout(() => {
+        if (tasks.length > 0) {
+          whisper(`You have ${tasks.length} task${tasks.length > 1 ? 's' : ''} for today. Would you like to check them?`);
+        } else {
+          whisper(`You can chat with your AI companion, check your contacts, or track your health. Just tap any card to get started.`);
+        }
+      }, 5000);
+      
+      // Periodic reminders every 5 minutes
+      const reminderInterval = setInterval(() => {
+        provideProactiveGuidance();
+      }, 300000); // 5 minutes
+      
+      return () => clearInterval(reminderInterval);
     }
-  }, [patient, loading]);
+  }, [patient, loading, tasks]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
+  };
+
+  const provideProactiveGuidance = () => {
+    if (!audioEnabled) return;
+    
+    const hour = new Date().getHours();
+    const guidanceMessages = [];
+    
+    // Time-based reminders
+    if (hour >= 8 && hour < 9) {
+      guidanceMessages.push("It's morning time. Have you had breakfast?");
+    } else if (hour >= 12 && hour < 13) {
+      guidanceMessages.push("It's lunchtime. Remember to eat something.");
+    } else if (hour >= 18 && hour < 19) {
+      guidanceMessages.push("It's evening time. Have you had dinner?");
+    }
+    
+    // Task reminders
+    if (tasks.length > 0) {
+      const pendingTasks = tasks.filter(t => t.status === 'pending');
+      if (pendingTasks.length > 0) {
+        guidanceMessages.push(`You have ${pendingTasks.length} pending task${pendingTasks.length > 1 ? 's' : ''}. Would you like to check them?`);
+      }
+    }
+    
+    // Health check reminder
+    if (healthMetrics.length === 0 || 
+        (healthMetrics.length > 0 && 
+         new Date().getTime() - new Date(healthMetrics[0].recorded_at).getTime() > 86400000)) {
+      guidanceMessages.push("Remember to track your health today.");
+    }
+    
+    // General orientation
+    guidanceMessages.push(`If you need help, you can ask your AI companion anything.`);
+    guidanceMessages.push(`You can check who you've met recently in your contacts.`);
+    
+    // Pick a random guidance message
+    if (guidanceMessages.length > 0) {
+      const randomMessage = guidanceMessages[Math.floor(Math.random() * guidanceMessages.length)];
+      whisper(randomMessage);
+    }
   };
 
   const loadPatientData = async () => {

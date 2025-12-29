@@ -92,6 +92,11 @@ export default function PatientFaceRecognitionPage() {
         title: 'Face Recognition Ready',
         description: 'Camera system is ready to use',
       });
+      
+      // Proactive guidance
+      setTimeout(() => {
+        whisper(`Face recognition is ready. Tap the start camera button to begin recognizing people. I will whisper their names to you when I see them.`);
+      }, 2000);
     } catch (error) {
       console.error('Error loading face detection models:', error);
       toast({
@@ -161,6 +166,13 @@ export default function PatientFaceRecognitionPage() {
         };
 
         whisper('Camera activated. I will help you recognize people.');
+        
+        // Proactive guidance after 10 seconds if no face detected
+        setTimeout(() => {
+          if (cameraActive && !currentDetection) {
+            whisper('Point your camera at someone\'s face. Make sure there is good lighting and the face is clearly visible.');
+          }
+        }, 10000);
         
         toast({
           title: 'Camera Started',

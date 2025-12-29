@@ -22,6 +22,19 @@ export default function AICompanionPage() {
     loadData();
   }, [profile]);
 
+  useEffect(() => {
+    // Proactive guidance when AI Companion page loads
+    if (patient && interactions.length === 0) {
+      setTimeout(() => {
+        whisper(`Hello ${patient.full_name}. I'm your AI companion. You can ask me things like: What day is it? Who am I? What time is it? Or anything else you'd like to know.`);
+      }, 1000);
+    } else if (patient && interactions.length > 0) {
+      setTimeout(() => {
+        whisper(`Welcome back, ${patient.full_name}. How can I help you today?`);
+      }, 1000);
+    }
+  }, [patient, interactions.length]);
+
   const loadData = async () => {
     if (!profile) return;
     
