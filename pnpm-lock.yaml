@@ -129,8 +129,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6(@supabase/supabase-js@2.76.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.9.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       miaoda-sc-plugin:
-        specifier: 1.0.38
-        version: 1.0.38(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1))
+        specifier: 1.0.49
+        version: 1.0.49(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1))
       motion:
         specifier: ^12.23.25
         version: 12.23.25(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2682,8 +2682,8 @@ packages:
       react-dom: '*'
       react-router-dom: '*'
 
-  miaoda-sc-plugin@1.0.38:
-    resolution: {integrity: sha512-bctxeRI9xlyDXP5OPe83yzNyrKXMtIwUzocEoaORmfqfEvK8iMhY7SxAEoVywal7sSeUgMIv4YMDPUwcrI0GCA==}
+  miaoda-sc-plugin@1.0.49:
+    resolution: {integrity: sha512-NrfwCjJhN5iRoNzd+c6bruRwlrDYmVRv6tAP/haHcIGvsjObunTOo8udCQjw2rG2XgXcks8gfhkJmzNrEgv4Fg==}
     peerDependencies:
       vite: ^4.0.0 || ^5.0.0
 
@@ -6242,7 +6242,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       react-router-dom: 7.9.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
-  miaoda-sc-plugin@1.0.38(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1)):
+  miaoda-sc-plugin@1.0.49(vite@5.4.19(@types/node@24.2.1)(lightningcss@1.30.1)):
     dependencies:
       '@babel/parser': 7.28.0
       '@babel/traverse': 7.28.0

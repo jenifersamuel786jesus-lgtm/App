@@ -8,11 +8,13 @@ import { AlertTriangle, ArrowLeft, Phone, MapPin, Clock } from 'lucide-react';
 import { getPatientByProfileId, createAlert, getLinkedCaregivers } from '@/db/api';
 import type { Patient } from '@/types/types';
 import { useToast } from '@/hooks/use-toast';
+import { useWhisper } from '@/hooks/use-whisper';
 
 export default function PatientEmergencyPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { whisper } = useWhisper();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -85,6 +87,9 @@ export default function PatientEmergencyPage() {
 
       setSending(false);
       setShowSuccess(true);
+
+      // Whisper confirmation
+      whisper(`Emergency alert sent to ${caregivers.length} caregiver${caregivers.length > 1 ? 's' : ''}. Help is on the way.`);
 
       toast({
         title: 'Emergency Alert Sent',

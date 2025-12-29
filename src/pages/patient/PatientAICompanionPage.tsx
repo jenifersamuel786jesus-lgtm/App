@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Send, MessageCircle } from 'lucide-react';
 import { getPatientByProfileId, getAIInteractions, createAIInteraction } from '@/db/api';
 import type { Patient, AIInteraction } from '@/types/types';
+import { useWhisper } from '@/hooks/use-whisper';
 
 export default function AICompanionPage() {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { whisper } = useWhisper();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [interactions, setInteractions] = useState<AIInteraction[]>([]);
   const [message, setMessage] = useState('');
@@ -40,6 +42,9 @@ export default function AICompanionPage() {
       // Get real AI response from Gemini API
       const aiResponse = await getAIResponse(message, patient);
       
+      // Whisper the AI response aloud
+      whisper(aiResponse);
+      
       await createAIInteraction({
         patient_id: patient.id,
         user_query: message,
@@ -52,10 +57,12 @@ export default function AICompanionPage() {
     } catch (error) {
       console.error('Error getting AI response:', error);
       // Fallback response if AI fails
+      const fallbackResponse = "I'm here to help you. Could you please rephrase your question?";
+      whisper(fallbackResponse);
       await createAIInteraction({
         patient_id: patient.id,
         user_query: message,
-        ai_response: "I'm here to help you. Could you please rephrase your question?",
+        ai_response: fallbackResponse,
         interaction_type: 'chat',
       });
       await loadData();

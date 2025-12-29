@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, MessageCircle, CheckSquare, Users, AlertCircle, Activity, LogOut, Settings, Camera } from 'lucide-react';
+import { Heart, MessageCircle, CheckSquare, Users, AlertCircle, Activity, LogOut, Settings, Camera, Volume2, VolumeX } from 'lucide-react';
 import { getPatientByProfileId, getTasks, getKnownFaces, getHealthMetrics } from '@/db/api';
 import type { Patient, Task, KnownFace, HealthMetric } from '@/types/types';
+import { useWhisper } from '@/hooks/use-whisper';
 
 export default function PatientDashboardPage() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { whisper, isEnabled: audioEnabled, setIsEnabled: setAudioEnabled } = useWhisper();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [knownFaces, setKnownFaces] = useState<KnownFace[]>([]);
@@ -19,6 +21,21 @@ export default function PatientDashboardPage() {
   useEffect(() => {
     loadPatientData();
   }, [profile]);
+
+  useEffect(() => {
+    // Welcome whisper when dashboard loads
+    if (patient && !loading) {
+      const greeting = getGreeting();
+      whisper(`${greeting}, ${patient.full_name}. Welcome to your dashboard.`);
+    }
+  }, [patient, loading]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   const loadPatientData = async () => {
     if (!profile) return;
@@ -47,12 +64,27 @@ export default function PatientDashboardPage() {
   };
 
   const handleEmergency = () => {
+    whisper('Opening emergency help');
     navigate('/patient/emergency');
   };
 
   const handleLogout = async () => {
+    whisper('Logging out. Goodbye!');
     await signOut();
     navigate('/login');
+  };
+
+  const toggleAudio = () => {
+    const newState = !audioEnabled;
+    setAudioEnabled(newState);
+    if (newState) {
+      whisper('Audio guidance enabled');
+    }
+  };
+
+  const navigateWithWhisper = (path: string, pageName: string) => {
+    whisper(`Opening ${pageName}`);
+    setTimeout(() => navigate(path), 300); // Small delay for whisper to start
   };
 
   if (loading) {
@@ -75,6 +107,14 @@ export default function PatientDashboardPage() {
             <h1 className="text-xl font-bold">RemZy</h1>
           </div>
           <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleAudio}
+              title={audioEnabled ? 'Disable audio guidance' : 'Enable audio guidance'}
+            >
+              {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => navigate('/patient/settings')}>
               <Settings className="w-5 h-5" />
             </Button>
@@ -107,7 +147,7 @@ export default function PatientDashboardPage() {
 
         {/* Quick Actions Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/ai-companion')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateWithWhisper('/patient/ai-companion', 'AI Companion')}>
             <CardHeader className="text-center pb-3">
               <div className="flex justify-center mb-2">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -119,7 +159,7 @@ export default function PatientDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/tasks')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateWithWhisper('/patient/tasks', 'My Tasks')}>
             <CardHeader className="text-center pb-3">
               <div className="flex justify-center mb-2">
                 <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -133,7 +173,7 @@ export default function PatientDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/contacts')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateWithWhisper('/patient/contacts', 'My Contacts')}>
             <CardHeader className="text-center pb-3">
               <div className="flex justify-center mb-2">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -147,7 +187,7 @@ export default function PatientDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/health')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateWithWhisper('/patient/health', 'Health Tracking')}>
             <CardHeader className="text-center pb-3">
               <div className="flex justify-center mb-2">
                 <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -161,7 +201,7 @@ export default function PatientDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/patient/face-recognition')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateWithWhisper('/patient/face-recognition', 'Face Recognition')}>
             <CardHeader className="text-center pb-3">
               <div className="flex justify-center mb-2">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
