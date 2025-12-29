@@ -11,16 +11,17 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - **Frontend**: Native iOS and Android applications\n- **Backend**: Cloud-based microservices architecture
 - **Database**: Cloud-hosted distributed database with real-time sync
 - **AI Services**: Real-time face recognition and conversational AI with cloud integration
-- **Infrastructure**: Scalable, healthcare-grade deployment
-
+- **Infrastructure**: Scalable, healthcare-grade deployment\n
 ## 2. Core Architecture
 
 ### 2.1 Device Mode System
-\n**Patient Mode**
-- Runs exclusively on patient's device
-- Locked after initial setup, cannot access caregiver features
+
+**Patient Mode**
+- Runs exclusively on patient's device\n- Locked after initial setup, cannot access caregiver features
 - Core capabilities: real-time camera processing, Bluetooth audio, AI companion, self-managed tasks and contacts
-- All guidance delivered privately through Bluetooth earphones\n\n**Caregiver Mode**
+- All guidance delivered privately through Bluetooth earphones
+
+**Caregiver Mode**
 - Runs exclusively on caregiver's device
 - Locked after initial setup, cannot access patient UI
 - Core capabilities: real-time monitoring dashboard, alert reception, activity logs, patient management
@@ -38,7 +39,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - **Instant face recognition** using hybrid AI (on-device + cloud) with minimal latency
 - **Real-time recognition workflow**:
   - **Known face detected**: Immediately whisper person's name and relationship via Bluetooth (e.g., 'This is John, your friend')
-  - **Unknown face detected**: Instantly whisper warning'You are meeting someone new', prompt patient to save person with name, face photo, and optional note (relationship: friend, doctor, neighbor, etc.)
+  - **Unknown face detected**: Instantly whisper warning 'You are meeting someone new', prompt patient to save person with name, face photo, and optional note (relationship: friend, doctor, neighbor, etc.)
   - **Face photo capture**: When saving a new person, system automatically captures and saves the current face image from camera feed as reference photo, displayed in save dialog for confirmation
   - **Saved face**: Newly saved faces with photos are immediately added to recognition database and available for instant recognition in future encounters
 - **Real-time whisper delivery**: All recognition results delivered within 1-2 seconds of face detection
@@ -47,8 +48,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 
 ### 3.2 Contact Management with Photo Support
 - Patient can manually add contacts independently
-- Contact attributes:
-  - Name (required)
+- Contact attributes:\n  - Name (required)
   - Relationship (friend, family, doctor, neighbor, etc.)\n  - Phone number (optional)
   - Notes (optional)
   - **Photo**: Patient can add photo through three methods:
@@ -62,7 +62,8 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - Circular thumbnail display in contact list
 - All contact photos encrypted and stored securely in cloud storage
 - Contact photos synced to caregiver device for reference
-\n### 3.3 Bluetooth Whisper Audio System
+
+### 3.3 Bluetooth Whisper Audio System
 - All guidance delivered exclusively through Bluetooth earphones in real-time
 - No loudspeaker output except emergencies
 - Whispered content includes:
@@ -85,9 +86,8 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - Reassuring, friendly, and simple communication style
 
 ### 3.5 Task and Reminder System
-- Patient can independently add tasks
-- Task attributes:\n  - Name
-  - Time
+- Patient can independently add tasks\n- Task attributes:
+  - Name\n  - Time
   - Optional location
 - Bluetooth whisper reminders at scheduled times
 - Task status options:
@@ -95,7 +95,8 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - Skipped
 - All status changes logged and synced to caregiver device
 
-### 3.6 Location Tracking\n- Real-time GPS tracking with background updates
+### 3.6 Location Tracking
+- Real-time GPS tracking with background updates
 - Safe area boundary monitoring
 - Automatic caregiver alert when patient exits safe zone
 - Location data included in all alerts and logs
@@ -114,13 +115,12 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - Unknown person encounters with save actions and face photos
   - Contact additions and photo updates
   - AI conversation transcripts
-  - Location history
-  - Health data readings
+  - Location history\n  - Health data readings
 - Real-time sync to caregiver device via cloud backend
-\n## 4. Caregiver Mode Features
 
-### 4.1 Dashboard
-- Real-time patient location map
+## 4. Caregiver Mode Features
+
+### 4.1 Dashboard\n- Real-time patient location map
 - Task status overview
 - Recent AI interactions summary
 - Health indicators display
@@ -130,12 +130,14 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 \n### 4.2 Alert System
 Instant alerts for:
 - Emergency button activation
-- Skipped tasks\n- Unknown person detection
+- Skipped tasks
+- Unknown person detection
 - Abnormal health metrics
 - Safe area boundary breach
 - New face saved by patient
 - New contact added with photo
-\n### 4.3 Live Monitoring
+
+### 4.3 Live Monitoring
 - Optional live camera feed access (privacy-safeguarded)
 - Environment viewing only when necessary
 \n### 4.4 Logs and Reports
@@ -167,7 +169,8 @@ Instant alerts for:
 - Face matching against database
 - Face model training and updates
 - Hybrid processing (on-device + cloud)
-\n**AI Companion Service**
+
+**AI Companion Service**
 - Natural language processing\n- Context-aware response generation
 - Conversation history management
 - Integration with GPT-4 or similar LLM
@@ -191,7 +194,8 @@ Instant alerts for:
 - Alert generation for abnormal patterns
 \n**Media Storage Service**
 - Face photo and contact photo upload
-- Image compression and optimization\n- CDN integration for fast delivery
+- Image compression and optimization
+- CDN integration for fast delivery
 - Secure encrypted storage
 
 **Real-Time Sync Service**
@@ -264,10 +268,8 @@ Instant alerts for:
 - photo_source (ENUM: camera, gallery, face_recognition)
 - added_date (TIMESTAMP)
 - last_updated (TIMESTAMP)
-
-**Known_Faces**
-- face_id (UUID, primary key)
-- patient_id (UUID, foreign key)
+\n**Known_Faces**
+- face_id (UUID, primary key)\n- patient_id (UUID, foreign key)
 - person_name (VARCHAR)
 - relationship_note (VARCHAR, nullable)
 - face_encoding (BYTEA)\n- face_photo_url (VARCHAR)\n- contact_id (UUID, foreign key, nullable)
@@ -291,9 +293,7 @@ Instant alerts for:
 - patient_action (ENUM: saved, ignored)\n- saved_as_face_id (UUID, foreign key, nullable)
 - saved_as_contact_id (UUID, foreign key, nullable)
 - created_at (TIMESTAMP)
-
-**Health_Metrics**
-- metric_id (UUID, primary key)
+\n**Health_Metrics**\n- metric_id (UUID, primary key)
 - patient_id (UUID, foreign key)
 - timestamp (TIMESTAMP)
 - heart_rate (INTEGER, nullable)
@@ -304,8 +304,8 @@ Instant alerts for:
 - location_id (UUID, primary key)
 - patient_id (UUID, foreign key)
 - timestamp (TIMESTAMP)
-- latitude (DECIMAL)\n- longitude (DECIMAL)
-- accuracy (FLOAT)
+- latitude (DECIMAL)
+- longitude (DECIMAL)\n- accuracy (FLOAT)
 - created_at (TIMESTAMP)
 
 ### 6.3 Document Collections (MongoDB)
@@ -357,11 +357,10 @@ Instant alerts for:
 - **Context Management**: Custom vector database for conversation history
 
 **AI Prompt Engineering**
-- System prompt:'You are a compassionate AI companion for an Alzheimer's patient. Provide clear, simple, reassuring responses. Use patient's name and current context.'
+- System prompt: 'You are a compassionate AI companion for an Alzheimer's patient. Provide clear, simple, reassuring responses. Use patient's name and current context.'
 - Context injection: Recent tasks, location, time, recent interactions
 - Response formatting: Short sentences, avoid complex vocabulary
-
-**Real-Time Processing**
+\n**Real-Time Processing**
 - WebSocket connection for instant responses
 - Streaming responses for natural conversation flow
 - Context caching for faster follow-up queries
@@ -369,7 +368,8 @@ Instant alerts for:
 ## 8. Security and Privacy
 
 ### 8.1 Data Protection
-- End-to-end encryption (AES-256) for data at rest and in transit\n- TLS 1.3 for all API communications
+- End-to-end encryption (AES-256) for data at rest and in transit
+- TLS 1.3 for all API communications
 - Face encoding data, face photos, and contact photos encrypted in cloud storage
 - Database encryption at rest
 - Regular security audits and penetration testing\n
@@ -398,13 +398,14 @@ Instant alerts for:
 ### 9.1 Frontend Technology Stack
 
 **iOS**
-- Swift5.9+
+- Swift 5.9+
 - SwiftUI for UI components
 - Core ML for on-device face recognition
 - AVFoundation for camera access
 - Core Location for GPS tracking
 - HealthKit for health data integration
-\n**Android**
+
+**Android**
 - Kotlin 1.9+
 - Jetpack Compose for UI components
 - ML Kit for on-device face recognition
@@ -432,7 +433,8 @@ Instant alerts for:
 - AWS/GCP/Azure for cloud hosting
 
 **Monitoring and Logging**
-- Prometheus for metrics\n- Grafana for visualization\n- ELK Stack (Elasticsearch, Logstash, Kibana) for log management\n- Sentry for error tracking
+- Prometheus for metrics\n- Grafana for visualization\n- ELK Stack (Elasticsearch, Logstash, Kibana) for log management
+- Sentry for error tracking
 \n### 9.3 Required Outputs
 - Complete app screen list and navigation flow
 - UI wireframes for phone-screen interface
@@ -449,21 +451,22 @@ Instant alerts for:
 - API documentation (OpenAPI/Swagger)
 - Deployment scripts and CI/CD pipeline\n- Infrastructure as Code (Terraform/CloudFormation)
 \n### 9.4 Integration Points
-- OpenAI GPT-4 API for conversational AI\n- Google Cloud Vision API or AWS Rekognition for face recognition backup
+- OpenAI GPT-4 API for conversational AI
+- Google Cloud Vision API or AWS Rekognition for face recognition backup
 - Twilio for SMS alerts
 - SendGrid for email notifications
 - Firebase Cloud Messaging for push notifications
 - Stripe for payment processing (if subscription model)
-- AppleHealthKit and Google Fit APIs\n- Mapbox or Google Maps for location visualization
+- Apple HealthKit and Google Fit APIs\n- Mapbox or Google Maps for location visualization
 \n### 9.5 Performance Requirements
-- Face recognition latency: <2 seconds from detection to whisper\n- Camera processing:15-30 FPS for smooth real-time recognition
+- Face recognition latency: <2 seconds from detection to whisper\n- Camera processing: 15-30 FPS for smooth real-time recognition
 - Face photo and contact photo capture: instant snapshot with auto-focus
 - Photo upload and sync: <5 seconds for standard resolution images
-- Bluetooth audio delay: <500ms\n- API response time: <200ms for95th percentile
+- Bluetooth audio delay: <500ms\n- API response time: <200ms for 95th percentile
 - Database query time: <100ms for simple queries
 - Real-time sync latency: <3 seconds for critical events
 - System uptime: 99.9% availability
-- Concurrent users: Support10,000+ active patients
+- Concurrent users: Support 10,000+ active patients
 
 ## 10. Design Style\n
 ### 10.1 Visual Design\n- **Color Scheme**: Calming blues (#4A90E2) and soft greens (#7ED321) for patient mode, professional grays (#F5F5F5) and whites (#FFFFFF) for caregiver mode
