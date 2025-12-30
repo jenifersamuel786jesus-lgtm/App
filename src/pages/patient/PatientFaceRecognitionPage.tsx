@@ -284,19 +284,52 @@ export default function PatientFaceRecognitionPage() {
   };
 
   const detectFaces = async () => {
-    if (!videoRef.current || !canvasRef.current || !modelsLoaded) return;
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
+      console.log('Detection skipped:', {
+        hasVideo: !!videoRef.current,
+        hasCanvas: !!canvasRef.current,
+        modelsLoaded,
+      });
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // Detect faces
-    const detections = await faceapi
-      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptors();
+    // Check if video is ready
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.log('Video not ready yet, readyState:', video.readyState);
+      return;
+    }
 
-    if (detections.length === 0) {
-      setCurrentDetection(null);
+    console.log('Running face detection...', {
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight,
+      readyState: video.readyState,
+    });
+
+    let detections;
+    try {
+      // Detect faces
+      detections = await faceapi
+        .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptors();
+
+      console.log('Detection complete:', {
+        facesFound: detections.length,
+        detections: detections.map(d => ({
+          box: d.detection.box,
+          score: d.detection.score,
+        })),
+      });
+
+      if (detections.length === 0) {
+        setCurrentDetection(null);
+        return;
+      }
+    } catch (error) {
+      console.error('Error during face detection:', error);
       return;
     }
 
@@ -775,6 +808,39 @@ export default function PatientFaceRecognitionPage() {
         </Card>
 
         {/* Current Detection */}
+        {/* Detection Status */}
+        {cameraActive && !currentDetection && (
+          <Card className="border-muted">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-muted-foreground animate-pulse" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Scanning for Faces...</CardTitle>
+                  <CardDescription>
+                    Point the camera at someone's face. Make sure there is good lighting.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  💡 <strong>Tips for best results:</strong>
+                </p>
+                <ul className="text-sm text-muted-foreground mt-2 space-y-1 ml-4 list-disc">
+                  <li>Ensure good lighting (avoid backlighting)</li>
+                  <li>Keep face centered and 1-3 feet from camera</li>
+                  <li>Face the camera directly (not profile view)</li>
+                  <li>Remove sunglasses or masks if possible</li>
+                  <li>Hold steady for 2-3 seconds</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {currentDetection && cameraActive && (
           <Card className={currentDetection.isKnown ? 'border-success' : 'border-warning'}>
             <CardHeader>
