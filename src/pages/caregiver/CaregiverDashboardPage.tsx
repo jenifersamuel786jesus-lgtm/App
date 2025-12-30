@@ -184,7 +184,7 @@ export default function CaregiverDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/activity-logs')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/patients')}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -198,7 +198,7 @@ export default function CaregiverDashboardPage() {
             </CardHeader>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/reports')}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/caregiver/patients')}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -289,7 +289,7 @@ export default function CaregiverDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate('/caregiver/link-patient')} className="w-full">
+              <Button onClick={() => navigate('/caregiver/patients')} className="w-full">
                 Link Patient Device
               </Button>
             </CardContent>
