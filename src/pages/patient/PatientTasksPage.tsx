@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { getPatientByProfileId, getTasks, createTask, updateTask } from '@/db/api';
 import type { Patient, Task } from '@/types/types';
 import { useToast } from '@/hooks/use-toast';
+import { useTaskReminders } from '@/hooks/use-task-reminders';
 
 export default function PatientTasksPage() {
   const { profile } = useAuth();
@@ -24,6 +25,13 @@ export default function PatientTasksPage() {
     task_name: '',
     scheduled_time: '',
     location: '',
+  });
+
+  // Enable automatic task reminders
+  useTaskReminders({ 
+    tasks, 
+    enabled: true,
+    reminderMinutesBefore: 5 // Remind 5 minutes before task
   });
 
   useEffect(() => {

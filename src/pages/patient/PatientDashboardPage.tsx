@@ -7,6 +7,7 @@ import { Heart, MessageCircle, CheckSquare, Users, AlertCircle, Activity, LogOut
 import { getPatientByProfileId, getTasks, getKnownFaces, getHealthMetrics } from '@/db/api';
 import type { Patient, Task, KnownFace, HealthMetric } from '@/types/types';
 import { useWhisper } from '@/hooks/use-whisper';
+import { useTaskReminders } from '@/hooks/use-task-reminders';
 
 export default function PatientDashboardPage() {
   const { profile, signOut } = useAuth();
@@ -17,6 +18,13 @@ export default function PatientDashboardPage() {
   const [knownFaces, setKnownFaces] = useState<KnownFace[]>([]);
   const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Enable automatic task reminders
+  useTaskReminders({ 
+    tasks, 
+    enabled: true,
+    reminderMinutesBefore: 5 // Remind 5 minutes before task
+  });
 
   useEffect(() => {
     loadPatientData();
