@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield, User, QrCode, KeyRound } from 'lucide-react';
 import { createCaregiver, getCaregiverByProfileId, updateProfile, findPatientByLinkingCode, linkDevices } from '@/db/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import QRCodeScanner from '@/components/ui/qrcodescanner';
 
 export default function CaregiverSetupPage() {
   const { profile, refreshProfile } = useAuth();
@@ -15,6 +16,7 @@ export default function CaregiverSetupPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -42,6 +44,22 @@ export default function CaregiverSetupPage() {
   const handleNext = () => {
     if (step === 1 && formData.full_name) {
       setStep(2);
+    }
+  };
+
+  const handleQRScan = (code: string) => {
+    console.log('QR code scanned:', code);
+    setShowScanner(false);
+    
+    // Extract linking code from QR code (it should be the 8-character code)
+    const linkingCode = code.trim().toUpperCase();
+    
+    // Validate it's 8 characters
+    if (linkingCode.length === 8) {
+      setFormData(prev => ({ ...prev, linking_code: linkingCode }));
+      setError('');
+    } else {
+      setError('Invalid QR code. Please scan a valid patient QR code.');
     }
   };
 
@@ -184,9 +202,13 @@ export default function CaregiverSetupPage() {
                     <div className="flex-1 border-t border-border"></div>
                   </div>
                   
-                  <Button variant="outline" className="w-full h-14 gap-2" disabled>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-14 gap-2"
+                    onClick={() => setShowScanner(true)}
+                  >
                     <QrCode className="w-5 h-5" />
-                    Scan QR Code (Coming Soon)
+                    Scan QR Code
                   </Button>
                 </div>
                 
@@ -207,6 +229,14 @@ export default function CaregiverSetupPage() {
           )}
         </CardContent>
       </Card>
+      )}
+      
+      {/* QR Code Scanner Modal */}
+      {showScanner && (
+        <QRCodeScanner 
+          onScan={handleQRScan}
+          onClose={() => setShowScanner(false)}
+        />
       )}
     </div>
   );
