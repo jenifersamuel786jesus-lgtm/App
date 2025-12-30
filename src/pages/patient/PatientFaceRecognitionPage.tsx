@@ -372,13 +372,16 @@ export default function PatientFaceRecognitionPage() {
         faceId: match.faceId,
       });
       
-      whisper(`Hello, this is ${match.name}`);
+      // Initial whisper
+      whisper(`This is ${match.name}.`);
       
-      // Get AI analysis for known person
+      // Get AI analysis for known person with activity description
       if (snapshotImage) {
         const aiAnalysis = await analyzeWithAI(snapshotImage, true, match.name);
         if (aiAnalysis) {
           setCurrentDetection(prev => prev ? { ...prev, aiAnalysis } : null);
+          // Whisper the activity description
+          whisper(aiAnalysis);
         }
       }
       
@@ -390,19 +393,28 @@ export default function PatientFaceRecognitionPage() {
       }
     } else {
       // Unknown face detected
-      whisper('You are meeting someone new. Would you like to save this person?');
+      whisper('You are meeting someone new.');
       
       // Capture image for saving
       captureSnapshot(descriptor);
       
-      // Get AI analysis for unknown person
+      // Get AI analysis for unknown person with activity description
       if (snapshotImage) {
         const aiAnalysis = await analyzeWithAI(snapshotImage, false);
-        setCurrentDetection({
-          isKnown: false,
-          confidence: 0,
-          aiAnalysis,
-        });
+        if (aiAnalysis) {
+          setCurrentDetection({
+            isKnown: false,
+            confidence: 0,
+            aiAnalysis,
+          });
+          // Whisper the activity description
+          whisper(aiAnalysis);
+        } else {
+          setCurrentDetection({
+            isKnown: false,
+            confidence: 0,
+          });
+        }
       } else {
         setCurrentDetection({
           isKnown: false,
@@ -480,8 +492,8 @@ export default function PatientFaceRecognitionPage() {
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
       
       const prompt = isKnown 
-        ? `You are assisting an Alzheimer's patient. This is ${personName}, someone they know. Provide a brief, warm reminder about this person in 1-2 sentences. Be reassuring and friendly.`
-        : `You are assisting an Alzheimer's patient. They are meeting someone new. Analyze this person's appearance and provide a brief, helpful description in 1-2 sentences that could help the patient remember them later. Focus on distinctive features like clothing, hair, or accessories. Be warm and reassuring.`;
+        ? `You are assisting an Alzheimer's patient. This is ${personName}, someone they know. Describe what ${personName} is doing right now (sitting, standing, walking, etc.) and what they're wearing. Keep it to 1-2 short sentences. Be warm and reassuring. Example: "${personName} is sitting down wearing a blue shirt." or "${personName} is standing and appears to be smiling."`
+        : `You are assisting an Alzheimer's patient. They are meeting someone new. Describe what this person is doing (sitting, standing, walking, etc.) and their appearance (clothing, hair, distinctive features). Keep it to 1-2 short sentences. Be warm and reassuring. Example: "This person is standing and wearing a red jacket with short brown hair." or "This person is sitting down with glasses and a friendly smile."`;
 
       const response = await fetch(
         'https://api-integrations.appmedo.com/app-8g7cyjjxisxt/api-rLob8RdzAOl9/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',

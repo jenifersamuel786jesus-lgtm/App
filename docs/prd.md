@@ -10,7 +10,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 ### 1.3 System Architecture
 - **Frontend**: Native iOS and Android applications\n- **Backend**: Cloud-based microservices architecture
 - **Database**: Cloud-hosted distributed database with real-time sync
-- **AI Services**: Fully functional real-time face recognition and conversational AI with cloud integration
+- **AI Services**: Fully functional real-time face recognition, activity recognition, and conversational AI with cloud integration
 - **Infrastructure**: Scalable, healthcare-grade deployment\n
 ## 2. Core Architecture
 
@@ -18,7 +18,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 
 **Patient Mode**
 - Runs exclusively on patient's device\n- Locked after initial setup, cannot access caregiver features
-- Core capabilities: fully functional real-time camera processing with face recognition, Bluetooth audio, AI companion, self-managed tasks and contacts
+- Core capabilities: fully functional real-time camera processing with face recognition and activity detection, Bluetooth audio, AI companion, self-managed tasks and contacts
 - All guidance delivered privately through Bluetooth earphones
 
 **Caregiver Mode**
@@ -33,20 +33,27 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - No global visibility or public access\n- Support multiple patient-caregiver linkages\n
 ## 3. Patient Mode Features
 
-### 3.1 Fully Functional Real-Time Always-On Camera System with Face Recognition
+### 3.1 Fully Functional Real-Time Always-On Camera System with Face Recognition and Activity Detection
 - **Continuous real-time camera operation** running in background with automatic restart on app launch
 - **Fully functional instant face recognition** using production-grade hybrid AI (on-device + cloud) with minimal latency (<2 seconds)
+- **Real-time activity and posture detection** using computer vision AI to identify human actions and body positions
 - **Complete real-time recognition workflow**:
-  - **Known face detected**: Immediately whisper person's name and relationship via Bluetooth (e.g., 'This is John, your friend') with 95%+ accuracy
-  - **Unknown face detected**: Instantly whisper warning 'You are meeting someone new', prompt patient to save person with name, face photo, and optional note (relationship: friend, doctor, neighbor, etc.)
+  - **Known face detected**: Immediately whisper person's name, relationship, and current activity via Bluetooth (e.g., 'This is Alan, your friend, he is sitting' or 'This is John, your son, he is standing')
+  - **Unknown face detected**: Instantly whisper warning with activity description (e.g., 'You are meeting someone new, they are standing' or 'Unknown person is sitting nearby'), prompt patient to save person with name, face photo, and optional note (relationship: friend, doctor, neighbor, etc.)
+  - **Activity detection capabilities**: System can identify common human activities and postures including:
+    + Standing\n    + Sitting
+    + Walking
+    + Lying down
+    + Bending
+    + Reaching\n    + Waving
+    + Talking (mouth movement detection)
   - **Face photo capture**: When saving a new person, system automatically captures and saves the current face image from camera feed as reference photo with optimal lighting and angle detection, displayed in save dialog for confirmation
   - **Saved face**: Newly saved faces with photos are immediately processed, encoded, and added to recognition database with instant availability for recognition in future encounters (no delay)
-  - **Multi-face detection**: System can detect and recognize multiple faces simultaneously in camera view, delivering sequential whispers for each recognized person
-  - **Continuous learning**: Face recognition model continuously improves accuracy through additional encounters and automatic re-training
-- **Real-time whisper delivery**: All recognition results delivered within 1-2 seconds of face detection with text-to-speech audio output
-- **Robust performance**: Face recognition operates reliably in various lighting conditions (indoor, outdoor, low light) with automatic exposure adjustment
-- **Privacy protection**: All face processing happens securely with encrypted data transmission and storage
-- Camera feed provides continuous environmental context to AI companion\n- Face recognition operates continuously without manual triggering, with automatic recovery from interruptions
+  - **Multi-face detection**: System can detect and recognize multiple faces simultaneously in camera view, delivering sequential whispers for each recognized person with their respective activities
+  - **Continuous learning**: Face recognition model continuously improves accuracy through additional encounters and automatic re-training\n- **Real-time whisper delivery**: All recognition results including identity and activity delivered within 1-2 seconds of detection with text-to-speech audio output
+- **Robust performance**: Face and activity recognition operates reliably in various lighting conditions (indoor, outdoor, low light) with automatic exposure adjustment
+- **Privacy protection**: All face and activity processing happens securely with encrypted data transmission and storage
+- Camera feed provides continuous environmental context to AI companion\n- Face and activity recognition operates continuously without manual triggering, with automatic recovery from interruptions
 
 ### 3.2 Contact Management with Photo Support
 - Patient can manually add contacts independently
@@ -69,22 +76,22 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - All guidance delivered exclusively through Bluetooth earphones in real-time
 - No loudspeaker output except emergencies
 - Whispered content includes:
-  - Real-time face recognition results (name and relationship)
+  - Real-time face recognition results with activity description (name, relationship, and current action)
   - Task reminders\n  - Orientation information (day, date, location, identity)
   - Safety warnings
 - Text-to-speech with calm, friendly, human-like tone
 - Instant audio delivery with minimal delay (<500ms)
-\n### 3.4 AI Companion\n- Proactive conversational AI providing frequent check-ins
-- Core functions:
+\n### 3.4 AI Companion\n- Proactive conversational AI providing frequent check-ins\n- Core functions:
   - Identity reminders ('who they are')
   - Temporal orientation (current day, date, time)
-  - Spatial orientation (current location)\n  - Recent social interactions recap
+  - Spatial orientation (current location)\n  - Recent social interactions recap with activity context
   - Task status updates
 - Natural language query support:\n  - 'What day is it?'
   - 'Who am I?'
   - 'Did I take my medicine?'
   - 'Who is this person?' (triggers immediate face recognition)
-- Context-aware responses using real-time camera data, task logs, and interaction history
+  - 'What is this person doing?' (triggers activity detection)
+- Context-aware responses using real-time camera data, task logs, activity recognition, and interaction history
 - Reassuring, friendly, and simple communication style
 \n### 3.5 Task and Reminder System
 - Patient can independently add tasks\n- Task attributes:
@@ -103,16 +110,14 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 \n### 3.7 Health Awareness\n- Integration with wearable or phone-based health metrics:\n  - Heart rate\n  - Step count
   - Inactivity duration
 - Abnormal pattern detection\n- Automatic caregiver alerts when thresholds exceeded
-
-### 3.8 Emergency Panic Button
+\n### 3.8 Emergency Panic Button
 - Large, always-accessible button on patient interface
 - Single tap triggers:\n  - Immediate caregiver alert
   - Live location transmission
   - Optional camera snapshot or live feed
 \n### 3.9 Automatic Logging
-- Comprehensive logging of all activities:\n  - Real-time face recognition events (timestamp, person name, recognition confidence, face photo)
-  - Task reminders and completions
-  - Unknown person encounters with save actions and face photos
+- Comprehensive logging of all activities:\n  - Real-time face recognition events with activity descriptions (timestamp, person name, recognition confidence, detected activity, face photo)\n  - Task reminders and completions
+  - Unknown person encounters with activity context and face photos
   - Contact additions and photo updates
   - AI conversation transcripts
   - Location history\n  - Health data readings
@@ -123,25 +128,24 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - Task status overview
 - Recent AI interactions summary
 - Health indicators display
-- Real-time face recognition event feed with recognition accuracy metrics
-- Unknown person encounter alerts
-- Contact list with photos\n\n### 4.2 Alert System
+- Real-time face recognition and activity detection event feed with recognition accuracy metrics
+- Unknown person encounter alerts with activity context\n- Contact list with photos\n\n### 4.2 Alert System
 Instant alerts for:
 - Emergency button activation
 - Skipped tasks
-- Unknown person detection
+- Unknown person detection with activity description
 - Abnormal health metrics
 - Safe area boundary breach
 - New face saved by patient
 - New contact added with photo
-- Face recognition system errors or interruptions
+- Face recognition or activity detection system errors or interruptions
 
 ### 4.3 Live Monitoring
 - Optional live camera feed access (privacy-safeguarded)
 - Environment viewing only when necessary
 \n### 4.4 Logs and Reports
-- Searchable history of:\n  - Real-time face recognition events with accuracy scores
-  - Tasks\n  - People encounters with face photos
+- Searchable history of:\n  - Real-time face recognition events with activity descriptions and accuracy scores
+  - Tasks\n  - People encounters with face photos and activity context
   - Contact additions and updates
   - Location records
   - AI interactions
@@ -154,7 +158,7 @@ Instant alerts for:
   - Reminder frequency
   - Alert sensitivity levels
   - Face recognition confidence threshold (adjustable 0.5-0.8)
-\n## 5. Backend Architecture
+  - Activity detection sensitivity\n\n## 5. Backend Architecture
 
 ### 5.1 Microservices Structure
 \n**Authentication Service**
@@ -174,7 +178,15 @@ Instant alerts for:
 - Face database indexing for fast retrieval
 - Recognition performance monitoring and optimization
 
-**AI Companion Service**
+**Activity Recognition Service (Fully Functional)**
+- Real-time human pose estimation and activity classification
+- Action detection using computer vision models (OpenPose, MediaPipe, or PoseNet)
+- Activity classification with confidence scoring
+- Multi-person activity tracking
+- Temporal activity analysis for continuous actions
+- Activity history logging and pattern recognition
+- Performance optimization for real-time processing
+\n**AI Companion Service**
 - Natural language processing\n- Context-aware response generation
 - Conversation history management
 - Integration with GPT-4 or similar LLM
@@ -213,10 +225,8 @@ Instant alerts for:
 ### 5.2 API Gateway
 - RESTful API endpoints\n- GraphQL support for complex queries
 - Rate limiting and throttling
-- API versioning
-- Request validation and sanitization
-
-### 5.3 Message Queue
+- API versioning\n- Request validation and sanitization
+\n### 5.3 Message Queue
 - RabbitMQ or Apache Kafka for asynchronous processing
 - Event streaming for real-time updates
 - Dead letter queue for failed messages
@@ -239,7 +249,8 @@ Instant alerts for:
 - health_thresholds (JSONB)
 - created_at (TIMESTAMP)
 - updated_at (TIMESTAMP)
-\n**Caregivers**\n- caregiver_id (UUID, primary key)
+\n**Caregivers**
+- caregiver_id (UUID, primary key)
 - name (VARCHAR)
 - email (VARCHAR, unique)
 - device_id (VARCHAR, unique)
@@ -263,7 +274,8 @@ Instant alerts for:
 - contact_id (UUID, primary key)
 - patient_id (UUID, foreign key)
 - contact_name (VARCHAR)
-- relationship (VARCHAR)\n- phone_number (VARCHAR, nullable)
+- relationship (VARCHAR)
+- phone_number (VARCHAR, nullable)
 - notes (TEXT, nullable)
 - photo_url (VARCHAR, nullable)
 - photo_source (ENUM: camera, gallery, face_recognition)
@@ -275,7 +287,8 @@ Instant alerts for:
 - person_name (VARCHAR)
 - relationship_note (VARCHAR, nullable)
 - face_encoding (BYTEA)\n- face_photo_url (VARCHAR)\n- contact_id (UUID, foreign key, nullable)
-- encoding_version (VARCHAR)\n- quality_score (FLOAT)
+- encoding_version (VARCHAR)
+- quality_score (FLOAT)
 - added_date (TIMESTAMP)
 - last_recognized_date (TIMESTAMP, nullable)
 - recognition_count (INTEGER, default 0)
@@ -287,17 +300,31 @@ Instant alerts for:
 - timestamp (TIMESTAMP)
 - location (GEOGRAPHY)
 - recognition_confidence (FLOAT)
-- whisper_delivered (BOOLEAN)
-- processing_time_ms (INTEGER)
+- detected_activity (VARCHAR)
+- activity_confidence (FLOAT)
+- whisper_delivered (BOOLEAN)\n- processing_time_ms (INTEGER)
 - created_at (TIMESTAMP)
 \n**Unknown_Encounters**
 - encounter_id (UUID, primary key)
 - patient_id (UUID, foreign key)\n- timestamp (TIMESTAMP)
 - location (GEOGRAPHY)
 - face_snapshot_url (VARCHAR)
+- detected_activity (VARCHAR)
+- activity_confidence (FLOAT)
 - patient_action (ENUM: saved, ignored)\n- saved_as_face_id (UUID, foreign key, nullable)\n- saved_as_contact_id (UUID, foreign key, nullable)
 - created_at (TIMESTAMP)
-\n**Health_Metrics**
+\n**Activity_Logs**
+- activity_log_id (UUID, primary key)
+- patient_id (UUID, foreign key)
+- face_id (UUID, foreign key, nullable)
+- timestamp (TIMESTAMP)
+- detected_activity (VARCHAR)
+- activity_confidence (FLOAT)
+- duration_seconds (INTEGER)
+- location (GEOGRAPHY)
+- created_at (TIMESTAMP)
+
+**Health_Metrics**
 - metric_id (UUID, primary key)\n- patient_id (UUID, foreign key)
 - timestamp (TIMESTAMP)
 - heart_rate (INTEGER, nullable)
@@ -307,8 +334,7 @@ Instant alerts for:
 \n**Location_History**
 - location_id (UUID, primary key)
 - patient_id (UUID, foreign key)
-- timestamp (TIMESTAMP)
-- latitude (DECIMAL)
+- timestamp (TIMESTAMP)\n- latitude (DECIMAL)
 - longitude (DECIMAL)
 - accuracy (FLOAT)
 - created_at (TIMESTAMP)
@@ -336,10 +362,11 @@ Instant alerts for:
 - Recent AI context: `ai_context:{patient_id}`
 - Alert queue: `alerts:{caregiver_id}`
 - Face recognition performance metrics: `face_metrics:{patient_id}`
-\n## 7. AI Integration\n
-### 7.1 Fully Functional Face Recognition AI
+- Activity detection cache: `activity:{patient_id}`
 
-**Technology Stack**
+## 7. AI Integration\n
+### 7.1 Fully Functional Face Recognition AI
+\n**Technology Stack**
 - **Face Detection**: MTCNN or RetinaFace with 99%+ detection accuracy
 - **Face Encoding**: FaceNet or ArcFace with 512-dimensional embeddings
 - **Matching Algorithm**: Cosine similarity with configurable threshold (default 0.6, adjustable 0.5-0.8)
@@ -371,15 +398,54 @@ Instant alerts for:
 - A/B testing for model updates
 - Performance monitoring and alerting
 - User feedback integration for accuracy improvement
-\n### 7.2 Conversational AI
+\n### 7.2 Fully Functional Activity Recognition AI
+
+**Technology Stack**
+- **Pose Estimation**: MediaPipe Pose or OpenPose for real-time skeleton tracking
+- **Activity Classification**: Custom CNN or LSTM model trained on activity datasets
+- **Action Recognition**: Temporal Convolutional Networks (TCN) for continuous action detection
+- **Model Framework**: TensorFlow Lite for mobile, TensorFlow Serving for cloud\n\n**Supported Activities**
+- Standing (static upright posture)
+- Sitting (seated posture with bent knees)
+- Walking (leg movement with forward motion)
+- Lying down (horizontal body position)
+- Bending (torso flexion)\n- Reaching (arm extension)
+- Waving (repetitive arm motion)
+- Talking (mouth movement and facial animation)
+\n**Hybrid Processing**
+- **On-Device**: Real-time pose estimation and basic activity classification
+- **Cloud**: Complex activity recognition and temporal analysis
+- **Fallback**: Cloud processing for ambiguous activities
+\n**Performance Optimization**
+- Lightweight pose estimation models (MobileNet backbone)
+- Activity classification caching for repeated actions
+- GPU acceleration for cloud processing
+- Frame sampling (process every 3-5 frames) to reduce computational load
+- Activity smoothing to avoid jittery detection
+
+**Robustness Features**
+- Multi-person activity tracking with person ID association
+- Occlusion handling (partial body visibility)
+- View-invariant recognition (front, side, back views)
+- Lighting-invariant detection
+- Activity confidence scoring (0.0-1.0)
+- Temporal filtering to reduce false positives
+
+**Integration with Face Recognition**
+- Activity detection synchronized with face recognition
+- Combined output: identity + activity in single whisper
+- Activity context stored with face recognition events
+- Multi-person tracking with face-activity pairing
+
+### 7.3 Conversational AI
 
 **Technology Stack**
 - **LLM**: OpenAI GPT-4 or Google PaLM 2\n- **Speech-to-Text**: Google Cloud Speech-to-Text or Whisper API
 - **Text-to-Speech**: Google Cloud TTS or Amazon Polly
 - **Context Management**: Custom vector database for conversation history
 \n**AI Prompt Engineering**
-- System prompt: 'You are a compassionate AI companion for an Alzheimer's patient. Provide clear, simple, reassuring responses. Use patient's name and current context.'
-- Context injection: Recent tasks, location, time, recent interactions, face recognition events
+- System prompt: 'You are a compassionate AI companion for an Alzheimer's patient. Provide clear, simple, reassuring responses. Use patient's name and current context including detected activities.'
+- Context injection: Recent tasks, location, time, recent interactions, face recognition events, activity detection results
 - Response formatting: Short sentences, avoid complex vocabulary\n\n**Real-Time Processing**
 - WebSocket connection for instant responses
 - Streaming responses for natural conversation flow
@@ -389,64 +455,67 @@ Instant alerts for:
 ### 8.1 Data Protection
 - End-to-end encryption (AES-256) for data at rest and in transit
 - TLS 1.3 for all API communications
-- Face encoding data, face photos, and contact photos encrypted in cloud storage
-- Database encryption at rest\n- Regular security audits and penetration testing\n\n### 8.2 Authentication and Authorization
+- Face encoding data, face photos, contact photos, and activity logs encrypted in cloud storage
+- Database encryption at rest\n- Regular security audits and penetration testing\n
+### 8.2 Authentication and Authorization
 - Multi-factor authentication for caregiver accounts
 - Device fingerprinting for patient devices
 - Role-based access control (RBAC)
 - JWT tokens with short expiration (15 minutes)
 - Refresh token rotation
-\n### 8.3 Privacy Safeguards
-- HIPAA compliance for health data\n- GDPR compliance for EU users
-- Data anonymization for analytics\n- User consent management
+
+### 8.3 Privacy Safeguards
+- HIPAA compliance for health data
+- GDPR compliance for EU users
+- Data anonymization for analytics
+- User consent management
 - Right to deletion and data export\n- Audit logs for all data access
 
 ### 8.4 Camera and Media Privacy
 - Live camera feed access requires explicit caregiver justification
 - All monitoring activities logged for transparency
-- Face photos and contact photos stored with consent
-- Automatic deletion of old face snapshots (90 days)
+- Face photos, contact photos, and activity data stored with consent
+- Automatic deletion of old face snapshots and activity logs (90 days)
 - No third-party access to media files
-- Face recognition processing compliant with biometric data regulations
+- Face recognition and activity detection processing compliant with biometric data regulations
 
 ## 9. Technical Implementation Requirements
 
 ### 9.1 Frontend Technology Stack
 
 **iOS**
-- Swift 5.9+
-- SwiftUI for UI components
-- Core ML for on-device face recognition with optimized models
+- Swift 5.9+\n- SwiftUI for UI components
+- Core ML for on-device face recognition and activity detection with optimized models
 - AVFoundation for camera access with real-time processing
-- Core Location for GPS tracking\n- HealthKit for health data integration
-- Vision framework for face detection
+- Vision framework for face and pose detection
+- Core Location for GPS tracking
+- HealthKit for health data integration
 
-**Android**
-- Kotlin 1.9+
+**Android**\n- Kotlin 1.9+
 - Jetpack Compose for UI components
 - ML Kit for on-device face recognition with TensorFlow Lite
+- MediaPipe for pose estimation and activity detection
 - CameraX for camera access with real-time processing
 - Fused Location Provider for GPS tracking
 - Google Fit API for health data integration
-- Firebase ML for face detection
-
+- Firebase ML for face detection\n
 **Shared Libraries**
 - Retrofit/Alamofire for API calls
 - Socket.IO for real-time communication
 - SQLite for local data caching
 - Glide/Kingfisher for image loading
-- ONNX Runtime for cross-platform face recognition models
+- ONNX Runtime for cross-platform face recognition and activity detection models
 \n### 9.2 Backend Technology Stack
 
 **Core Framework**
 - Node.js with Express.js or Python with FastAPI
 - TypeScript for type safety
 \n**AI Services**
-- TensorFlow Serving for face recognition models
+- TensorFlow Serving for face recognition and activity detection models
 - OpenAI API for conversational AI
 - Google Cloud AI Platform for model hosting
 - FAISS for face embedding similarity search
-
+- MediaPipe for pose estimation\n
 **Infrastructure**
 - Docker for containerization
 - Kubernetes for orchestration
@@ -460,21 +529,22 @@ Instant alerts for:
 - Complete app screen list and navigation flow
 - UI wireframes for phone-screen interface
 - Feature-wise code structure
-- Fully functional real-time face recognition pipeline architecture with performance benchmarks
+- Fully functional real-time face recognition and activity detection pipeline architecture with performance benchmarks
 - Contact management system with photo capture and storage
 - AI logic flow and prompt handling system
 - Database schema and real-time sync logic
-- Camera and face recognition integration logic with performance optimization
+- Camera, face recognition, and activity detection integration logic with performance optimization
 - Face photo and contact photo capture and storage system
 - Photo gallery integration and image picker implementation
 - Bluetooth audio whisper system implementation with low-latency delivery
 - Alert and notification system architecture
 - API documentation (OpenAPI/Swagger)\n- Deployment scripts and CI/CD pipeline
 - Infrastructure as Code (Terraform/CloudFormation)
-- Face recognition accuracy testing and validation reports
+- Face recognition and activity detection accuracy testing and validation reports
 \n### 9.4 Integration Points
 - OpenAI GPT-4 API for conversational AI
 - Google Cloud Vision API or AWS Rekognition for face recognition backup
+- MediaPipe or OpenPose for activity detection
 - Twilio for SMS alerts
 - SendGrid for email notifications
 - Firebase Cloud Messaging for push notifications
@@ -482,7 +552,9 @@ Instant alerts for:
 - Apple HealthKit and Google Fit APIs\n- Mapbox or Google Maps for location visualization
 \n### 9.5 Performance Requirements
 - Face recognition latency: <2 seconds from detection to whisper (95th percentile)
+- Activity detection latency: <1 second from pose estimation to classification\n- Combined face + activity recognition: <2.5 seconds total processing time
 - Face recognition accuracy: >95% for known faces, <5% false positive rate
+- Activity detection accuracy: >90% for common activities (standing, sitting, walking)
 - Camera processing: 15-30 FPS for smooth real-time recognition
 - Face photo and contact photo capture: instant snapshot with auto-focus (<1 second)
 - Photo upload and sync: <5 seconds for standard resolution images
@@ -491,6 +563,7 @@ Instant alerts for:
 - System uptime: 99.9% availability
 - Concurrent users: Support 10,000+ active patients
 - Face database scalability: Support 100+ faces per patient with fast lookup
+- Activity detection frame rate: 10-15 FPS for real-time tracking
 
 ## 10. Design Style\n
 ### 10.1 Visual Design\n- **Color Scheme**: Calming blues (#4A90E2) and soft greens (#7ED321) for patient mode, professional grays (#F5F5F5) and whites (#FFFFFF) for caregiver mode
@@ -498,8 +571,8 @@ Instant alerts for:
 - **Layout**: Card-based layout with 16px padding for patient mode, grid-based dashboard with 8px spacing for caregiver mode
 - **Icons**: Material Design icons with text labels for patient mode, standard system icons for caregiver mode
 - **Photo Display**: Circular thumbnail images (48px diameter) with 2px border for contact list, larger square preview (200x200px) with 8px rounded corners in contact details, full-screen preview with pinch-to-zoom\n- **Photo Capture UI**: Clean camera interface with large circular capture button (80px), gallery access button, and preview confirmation screen with retake/confirm options
-- **Real-time Indicators**: Subtle pulsing blue dot (8px) for active face recognition, green checkmark for whisper delivery confirmation, accuracy percentage display for recognized faces
-
+- **Real-time Indicators**: Subtle pulsing blue dot (8px) for active face recognition, green checkmark for whisper delivery confirmation, accuracy percentage display for recognized faces, activity badge (e.g., 'Sitting', 'Standing') with confidence indicator
+- **Activity Visualization**: Small activity icon overlays on recognized faces in caregiver dashboard, color-coded activity badges (blue for standing, green for sitting, orange for walking)\n
 ### 10.2 Interaction Design
 - Large touch targets for patient interface (minimum 60px)\n- Smooth fade animations (300ms duration) to avoid confusion
 - Persistent emergency button with red background (#FF3B30) and high visibility
@@ -509,11 +582,11 @@ Instant alerts for:
 - Contact photo editing with replace/remove options
 - Comprehensive filtering and search for caregiver logs
 - Instant visual feedback for photo save actions with thumbnail confirmation
-- Real-time status indicators for camera and recognition system with accuracy metrics
+- Real-time status indicators for camera, face recognition, and activity detection systems with accuracy metrics
+- Activity detection feedback: subtle visual overlay showing detected activity on camera preview
 - Pinch-to-zoom for photo preview in contact details
-- Pull-to-refresh for caregiver dashboard
-- Swipe gestures for navigation in patient mode
-- Visual feedback for face recognition events (subtle border highlight around recognized faces)
+- Pull-to-refresh for caregiver dashboard\n- Swipe gestures for navigation in patient mode
+- Visual feedback for face recognition events (subtle border highlight around recognized faces with activity label)
 
 ## 11. Deployment and DevOps
 
@@ -526,9 +599,9 @@ Instant alerts for:
 \n**Database Hosting**
 - Managed PostgreSQL (AWS RDS/Google Cloud SQL)
 - Managed Redis (AWS ElastiCache/Google Memorystore)
-- Managed MongoDB (MongoDB Atlas)\n- S3/Cloud Storage for object storage
-
-**Compute Resources**
+- Managed MongoDB (MongoDB Atlas)
+- S3/Cloud Storage for object storage
+\n**Compute Resources**
 - Kubernetes cluster with 3+ nodes
 - GPU instances for AI model inference (NVIDIA T4 or better)
 - Serverless functions for event-driven tasks
@@ -553,7 +626,7 @@ Instant alerts for:
 - Error rate tracking
 - User session monitoring
 - API endpoint monitoring
-- Face recognition accuracy monitoring
+- Face recognition and activity detection accuracy monitoring
 
 **Infrastructure Monitoring**
 - Server health checks
@@ -561,22 +634,26 @@ Instant alerts for:
 - Network latency monitoring
 - Storage usage tracking
 \n**Alerting**
-- PagerDuty/Opsgenie integration\n- Slack/Email notifications
+- PagerDuty/Opsgenie integration
+- Slack/Email notifications
 - Escalation policies
 - Incident response playbooks
-\n### 11.4 Backup and Disaster Recovery
+
+### 11.4 Backup and Disaster Recovery
 - Automated daily database backups
 - Point-in-time recovery capability
 - Cross-region replication
 - Disaster recovery plan with RTO <4 hours, RPO <1 hour
 - Regular disaster recovery drills
-\n## 12. Compliance and Regulations
+
+## 12. Compliance and Regulations
 
 ### 12.1 Healthcare Compliance
 - HIPAA compliance for US deployment
 - HITECH Act requirements\n- FDA medical device classification assessment
 - Clinical validation and testing
-\n### 12.2 Data Privacy Regulations
+
+### 12.2 Data Privacy Regulations
 - GDPR compliance for EU users
 - CCPA compliance for California users
 - Data processing agreements
@@ -598,28 +675,30 @@ Instant alerts for:
 - Security testing (penetration, vulnerability scanning)
 - Usability testing with target users
 - Accessibility testing\n- Face recognition accuracy testing with diverse datasets
-
+- Activity detection accuracy testing with various scenarios (different lighting, angles, occlusions)\n
 ### 13.2 Testing Tools
 - Jest/XCTest for unit testing
 - Postman/Newman for API testing
 - Selenium/Appium for e2e testing
 - JMeter/Gatling for performance testing
 - OWASP ZAP for security testing
-- Custom face recognition validation framework
-\n## 14. Cost Estimation
+- Custom face recognition and activity detection validation framework
+
+## 14. Cost Estimation
 
 ### 14.1 Infrastructure Costs (Monthly)
-- Cloud hosting: $2,000-5,000
-- Database services: $1,000-2,000
-- AI API calls (OpenAI, Cloud Vision): $1,500-3,000
+- Cloud hosting: $2,500-6,000\n- Database services: $1,000-2,000
+- AI API calls (OpenAI, Cloud Vision, Activity Detection): $2,000-4,000
 - CDN and storage: $500-1,000\n- Monitoring and logging: $300-500
-- **Total**: $5,300-11,500/month
+- **Total**: $6,300-13,500/month
 
 ### 14.2 Development Costs (One-Time)
-- Frontend development (iOS + Android): 6-8 months\n- Backend development: 4-6 months
-- AI integration and training: 2-3 months\n- Testing and QA: 2-3 months
+- Frontend development (iOS + Android): 7-9 months
+- Backend development: 5-7 months
+- AI integration and training (face + activity): 3-4 months
+- Testing and QA: 2-3 months
 - Design and UX: 1-2 months
-- **Total**: 15-22 months development time
+- **Total**: 18-25 months development time
 
 ## 15. Roadmap and Milestones
 
@@ -628,36 +707,39 @@ Instant alerts for:
 - Database schema implementation
 - Authentication and device linking
 - Basic patient and caregiver UI
-\n### Phase 2 (Months 4-6): Core Features
+\n### Phase 2 (Months 4-7): Core Features
 - Fully functional face recognition integration with accuracy testing
+- Activity detection integration with pose estimation
 - Contact management with photos
 - Task and reminder system
-- Location tracking\n\n### Phase 3 (Months 7-9): AI and Real-Time
+- Location tracking\n
+### Phase 3 (Months 8-11): AI and Real-Time
 - AI companion integration\n- Real-time sync implementation
 - Bluetooth audio system
 - Alert and notification system
+- Combined face + activity recognition whisper delivery
 
-### Phase 4 (Months 10-12): Advanced Features
+### Phase 4 (Months 12-15): Advanced Features
 - Health monitoring integration
 - Live camera feed
 - Advanced analytics and reporting
 - Performance optimization
+- Multi-person activity tracking
 
-### Phase 5 (Months 13-15): Testing and Refinement
+### Phase 5 (Months 16-18): Testing and Refinement
 - Comprehensive testing\n- Security audits
 - Usability testing with real users
 - Bug fixes and optimization
-- Face recognition accuracy validation
+- Face recognition and activity detection accuracy validation
 
-### Phase 6 (Months 16-18): Compliance and Launch
+### Phase 6 (Months 19-21): Compliance and Launch
 - HIPAA/GDPR compliance certification
 - App store submission
 - Marketing and user onboarding
 - Production deployment
-
-### Phase 7 (Months 19+): Post-Launch
+\n### Phase 7 (Months 22+): Post-Launch
 - User feedback collection
 - Feature enhancements
 - Scale infrastructure
 - Continuous improvement
-- Face recognition model updates and optimization
+- Face recognition and activity detection model updates and optimization
