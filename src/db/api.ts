@@ -196,6 +196,8 @@ export const getLinkedCaregivers = async (patientId: string): Promise<CaregiverW
 };
 
 export const linkDevices = async (patientId: string, caregiverId: string): Promise<DeviceLink | null> => {
+  console.log('linkDevices called with:', { patientId, caregiverId });
+  
   const { data, error } = await supabase
     .from('device_links')
     .insert({ patient_id: patientId, caregiver_id: caregiverId })
@@ -204,12 +206,22 @@ export const linkDevices = async (patientId: string, caregiverId: string): Promi
 
   if (error) {
     console.error('Error linking devices:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     return null;
   }
+  
+  console.log('Devices linked successfully:', data);
   return data;
 };
 
 export const findPatientByLinkingCode = async (linkingCode: string): Promise<Patient | null> => {
+  console.log('findPatientByLinkingCode called with:', linkingCode);
+  
   const { data, error } = await supabase
     .from('patients')
     .select('*')
@@ -217,9 +229,17 @@ export const findPatientByLinkingCode = async (linkingCode: string): Promise<Pat
     .maybeSingle();
 
   if (error) {
-    console.error('Error finding patient by linking code:', error);
+    console.error('Error finding patient:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     return null;
   }
+  
+  console.log('Patient found:', data ? `ID: ${data.id}, Name: ${data.full_name}` : 'null');
   return data;
 };
 

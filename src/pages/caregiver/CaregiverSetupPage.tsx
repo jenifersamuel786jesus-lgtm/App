@@ -49,17 +49,24 @@ export default function CaregiverSetupPage() {
 
   const handleQRScan = (code: string) => {
     console.log('QR code scanned:', code);
+    console.log('QR code length:', code.length);
     setShowScanner(false);
     
     // Extract linking code from QR code (it should be the 8-character code)
     const linkingCode = code.trim().toUpperCase();
+    console.log('Processed linking code:', linkingCode);
+    console.log('Processed code length:', linkingCode.length);
     
-    // Validate it's 8 characters
-    if (linkingCode.length === 8) {
+    // Validate it's 8 characters (alphanumeric only)
+    const isValid = /^[A-Z0-9]{8}$/.test(linkingCode);
+    
+    if (isValid) {
       setFormData(prev => ({ ...prev, linking_code: linkingCode }));
       setError('');
+      console.log('Valid linking code set:', linkingCode);
     } else {
-      setError('Invalid QR code. Please scan a valid patient QR code.');
+      setError(`Invalid QR code format. Expected 8 characters, got ${linkingCode.length}. Code: ${linkingCode}`);
+      console.error('Invalid QR code:', { code, linkingCode, length: linkingCode.length });
     }
   };
 
@@ -98,15 +105,26 @@ export default function CaregiverSetupPage() {
       
       // If linking code provided, link to patient
       if (formData.linking_code) {
+        console.log('Attempting to link with code:', formData.linking_code);
         const patient = await findPatientByLinkingCode(formData.linking_code.toUpperCase());
         
+        console.log('Patient found:', patient);
+        
         if (!patient) {
-          setError('Invalid linking code. Please check and try again.');
+          setError('Invalid linking code. No patient found with this code. Please check and try again.');
           setLoading(false);
           return;
         }
         
-        await linkDevices(patient.id, caregiver.id);
+        console.log('Linking devices - Patient ID:', patient.id, 'Caregiver ID:', caregiver.id);
+        const linkResult = await linkDevices(patient.id, caregiver.id);
+        console.log('Link result:', linkResult);
+        
+        if (!linkResult) {
+          setError('Failed to link devices. Please try again.');
+          setLoading(false);
+          return;
+        }
       }
       
       // Update role to caregiver
