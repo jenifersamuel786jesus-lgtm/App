@@ -77,12 +77,19 @@ export const getPatient = async (patientId: string): Promise<Patient | null> => 
 };
 
 export const createPatient = async (patient: Partial<Patient>): Promise<Patient | null> => {
-  // Generate linking code
-  const { data: codeData } = await supabase.rpc('generate_linking_code');
+  // Generate linking code (8-character uppercase alphanumeric)
+  const { data: linkingCode, error: codeError } = await supabase.rpc('generate_linking_code');
+  
+  if (codeError) {
+    console.error('Error generating linking code:', codeError);
+    return null;
+  }
+  
+  console.log('Generated linking code:', linkingCode);
   
   const { data, error } = await supabase
     .from('patients')
-    .insert({ ...patient, linking_code: codeData })
+    .insert({ ...patient, linking_code: linkingCode })
     .select()
     .maybeSingle();
 
@@ -90,6 +97,8 @@ export const createPatient = async (patient: Partial<Patient>): Promise<Patient 
     console.error('Error creating patient:', error);
     return null;
   }
+  
+  console.log('Patient created with linking code:', data?.linking_code);
   return data;
 };
 

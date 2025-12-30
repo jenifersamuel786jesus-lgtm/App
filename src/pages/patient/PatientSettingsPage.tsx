@@ -114,12 +114,12 @@ export default function PatientSettingsPage() {
                   {showLinkingCode ? 'Hide' : 'Show'} Linking Code
                 </Button>
                 
-                {showLinkingCode && patient?.device_id && (
+                {showLinkingCode && patient?.linking_code && (
                   <div className="flex flex-col items-center gap-4 p-6 bg-muted rounded-lg">
-                    <QRCodeDataUrl text={patient.device_id} width={200} />
+                    <QRCodeDataUrl text={patient.linking_code} width={200} />
                     <div className="space-y-1 text-center">
                       <p className="text-sm text-muted-foreground">Linking Code:</p>
-                      <p className="text-2xl font-mono font-bold tracking-wider">{patient.device_id}</p>
+                      <p className="text-2xl font-mono font-bold tracking-wider">{patient.linking_code}</p>
                     </div>
                   </div>
                 )}
