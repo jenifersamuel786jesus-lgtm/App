@@ -46,21 +46,34 @@ export default function CaregiverSetupPage() {
   };
 
   const handleComplete = async () => {
-    if (!profile) return;
+    if (!profile) {
+      setError('No profile found. Please log in again.');
+      return;
+    }
+    
+    if (!formData.full_name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
     
     setLoading(true);
     setError('');
     
     try {
+      console.log('Creating caregiver with profile_id:', profile.id);
+      console.log('Full name:', formData.full_name);
+      
       // Create caregiver record
       const caregiver = await createCaregiver({
         profile_id: profile.id,
-        full_name: formData.full_name,
+        full_name: formData.full_name.trim(),
         device_id: crypto.randomUUID(),
       });
       
+      console.log('Caregiver creation result:', caregiver);
+      
       if (!caregiver) {
-        setError('Failed to create caregiver profile');
+        setError('Failed to create caregiver profile. Please check your connection and try again.');
         setLoading(false);
         return;
       }
@@ -93,22 +106,32 @@ export default function CaregiverSetupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-6 h-6 text-secondary" />
-            <CardTitle>Caregiver Setup</CardTitle>
-          </div>
-          <CardDescription>
-            Let's set up your RemZy caregiver profile
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {!profile ? (
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading profile...</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-6 h-6 text-secondary" />
+              <CardTitle>Caregiver Setup</CardTitle>
+            </div>
+            <CardDescription>
+              Let's set up your RemZy caregiver profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
           {step === 1 && (
             <div className="space-y-4">
@@ -184,6 +207,7 @@ export default function CaregiverSetupPage() {
           )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

@@ -124,6 +124,8 @@ export const getCaregiverByProfileId = async (profileId: string): Promise<Caregi
 };
 
 export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Caregiver | null> => {
+  console.log('createCaregiver called with:', caregiver);
+  
   const { data, error } = await supabase
     .from('caregivers')
     .insert(caregiver)
@@ -132,8 +134,16 @@ export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Ca
 
   if (error) {
     console.error('Error creating caregiver:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
     return null;
   }
+  
+  console.log('Caregiver created successfully:', data);
   return data;
 };
 
