@@ -53,10 +53,38 @@ export default function PatientTasksPage() {
       return;
     }
 
+    // datetime-local gives us: "2024-12-30T12:37" (no timezone info)
+    // We need to treat this as the user's local time and convert properly
+    // Create a Date object which will use local timezone
+    const localDate = new Date(newTask.scheduled_time);
+    
+    // Format as ISO string with timezone offset
+    // This ensures the database stores the correct time for the user's timezone
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const hours = String(localDate.getHours()).padStart(2, '0');
+    const minutes = String(localDate.getMinutes()).padStart(2, '0');
+    const seconds = '00';
+    
+    // Get timezone offset in minutes and convert to +HH:MM format
+    const timezoneOffset = -localDate.getTimezoneOffset(); // Negative because getTimezoneOffset returns opposite sign
+    const offsetHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
+    const offsetMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
+    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+    const timezoneString = `${offsetSign}${offsetHours}:${offsetMinutes}`;
+    
+    const scheduledTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${timezoneString}`;
+    
+    console.log('Original input:', newTask.scheduled_time);
+    console.log('Local date:', localDate);
+    console.log('Timezone offset (minutes):', timezoneOffset);
+    console.log('Formatted with timezone:', scheduledTime);
+
     const task = await createTask({
       patient_id: patient.id,
       task_name: newTask.task_name,
-      scheduled_time: newTask.scheduled_time,
+      scheduled_time: scheduledTime,
       location: newTask.location || null,
       status: 'pending',
     });
