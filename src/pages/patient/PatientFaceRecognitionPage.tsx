@@ -127,7 +127,7 @@ export default function PatientFaceRecognitionPage() {
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'environment', // Use back camera
+          facingMode: 'user', // Use front camera for face recognition
         },
         audio: false,
       });
@@ -177,7 +177,7 @@ export default function PatientFaceRecognitionPage() {
         
         toast({
           title: 'Camera Started',
-          description: 'Point the back camera at people to recognize them.',
+          description: 'Point the camera at people to recognize them.',
         });
       } else {
         console.error('Video ref is null!');
@@ -1036,7 +1036,7 @@ export default function PatientFaceRecognitionPage() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
                 <span className="text-sm font-bold text-primary">1</span>
               </div>
-              <p>Start the camera and point the back camera at someone's face</p>
+              <p>Start the camera and point it at someone's face</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
@@ -1061,6 +1061,72 @@ export default function PatientFaceRecognitionPage() {
                 <span className="text-sm font-bold text-primary">5</span>
               </div>
               <p>Hold your device steady and ensure good lighting for best results</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Troubleshooting Card */}
+        <Card className="border-muted">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <AlertCircle className="w-6 h-6 text-warning" />
+              Troubleshooting
+            </CardTitle>
+            <CardDescription>
+              If face recognition is not working, try these steps
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3 text-sm">
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">✅ Check Camera Permission</p>
+                <p className="text-muted-foreground">
+                  Make sure you allowed camera access when prompted. Check your browser settings if needed.
+                </p>
+              </div>
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">💡 Improve Lighting</p>
+                <p className="text-muted-foreground">
+                  Face detection works best in good lighting. Avoid backlighting and dark environments.
+                </p>
+              </div>
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">📏 Optimal Distance</p>
+                <p className="text-muted-foreground">
+                  Keep face 1-3 feet from camera. Too close or too far reduces accuracy.
+                </p>
+              </div>
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">👤 Face Visibility</p>
+                <p className="text-muted-foreground">
+                  Face camera directly (not profile). Remove sunglasses, masks, or obstructions.
+                </p>
+              </div>
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">⏱️ Hold Steady</p>
+                <p className="text-muted-foreground">
+                  Hold device steady for 2-3 seconds. Detection runs every 2 seconds.
+                </p>
+              </div>
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="font-medium mb-1">🔄 Refresh Page</p>
+                <p className="text-muted-foreground">
+                  If models fail to load, refresh the page. Check browser console (F12) for errors.
+                </p>
+              </div>
+              
+              <div className="bg-primary/10 border border-primary/20 p-3 rounded-lg">
+                <p className="font-medium mb-1 text-primary">🔍 Check Console Logs</p>
+                <p className="text-sm text-muted-foreground">
+                  Press F12 to open browser console. Look for logs starting with "Running face detection..." 
+                  to see if detection is working. Share console errors with support if needed.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
