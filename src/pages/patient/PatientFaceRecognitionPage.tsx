@@ -411,6 +411,7 @@ export default function PatientFaceRecognitionPage() {
       }
     } else {
       // Unknown face detected
+      console.log('🆕 Unknown face detected!');
       whisper('You are meeting someone new.');
       
       // Capture image for saving
@@ -427,17 +428,20 @@ export default function PatientFaceRecognitionPage() {
           });
           // Whisper the activity description
           whisper(aiAnalysis);
+          console.log('✅ Unknown person detection complete with AI analysis');
         } else {
           setCurrentDetection({
             isKnown: false,
             confidence: 0,
           });
+          console.log('✅ Unknown person detection complete (no AI analysis)');
         }
       } else {
         setCurrentDetection({
           isKnown: false,
           confidence: 0,
         });
+        console.log('✅ Unknown person detection complete (no snapshot)');
       }
       
       // Log unknown encounter
@@ -447,7 +451,16 @@ export default function PatientFaceRecognitionPage() {
           encounter_time: new Date().toISOString(),
           patient_action: 'detected',
         });
+        console.log('📝 Unknown encounter logged to database');
       }
+      
+      // Proactive prompt to save after 3 seconds
+      setTimeout(() => {
+        if (!showSaveDialog && currentDetection && !currentDetection.isKnown) {
+          whisper('Would you like to save this person? Tap the Save This Person button.');
+          console.log('💬 Prompted user to save unknown person');
+        }
+      }, 3000);
     }
   };
 
@@ -674,7 +687,14 @@ export default function PatientFaceRecognitionPage() {
   };
 
   const handleSaveNewFace = async () => {
+    console.log('💾 handleSaveNewFace called');
+    console.log('Name:', newFaceName);
+    console.log('Patient:', patient?.id);
+    console.log('Face descriptor:', faceDescriptor ? 'Present' : 'Missing');
+    console.log('Captured image:', capturedImage ? 'Present' : 'Missing');
+    
     if (!newFaceName.trim() || !patient || !faceDescriptor) {
+      console.error('❌ Missing required information');
       toast({
         title: 'Missing Information',
         description: 'Please enter a name for this person.',
@@ -684,6 +704,7 @@ export default function PatientFaceRecognitionPage() {
     }
 
     try {
+      console.log('📝 Saving face to database...');
       // Save face encoding as JSON string
       const encodingString = JSON.stringify(Array.from(faceDescriptor));
 
@@ -699,6 +720,7 @@ export default function PatientFaceRecognitionPage() {
       });
 
       if (newFace) {
+        console.log('✅ Face saved successfully:', newFace.id);
         toast({
           title: 'Contact Saved',
           description: `${newFaceName} has been added to your contacts.`,
@@ -707,7 +729,9 @@ export default function PatientFaceRecognitionPage() {
         whisper(`I will remember ${newFaceName} from now on.`);
 
         // Reload known faces
+        console.log('🔄 Reloading known faces...');
         await loadData();
+        console.log('✅ Known faces reloaded');
 
         // Reset form
         setShowSaveDialog(false);
@@ -716,9 +740,10 @@ export default function PatientFaceRecognitionPage() {
         setNewFaceNotes('');
         setCapturedImage(null);
         setFaceDescriptor(null);
+        console.log('🧹 Form reset complete');
       }
     } catch (error) {
-      console.error('Error saving face:', error);
+      console.error('❌ Error saving face:', error);
       toast({
         title: 'Save Failed',
         description: 'Could not save this person. Please try again.',
@@ -931,13 +956,25 @@ export default function PatientFaceRecognitionPage() {
               )}
               
               {!currentDetection.isKnown && (
-                <Button
-                  onClick={() => setShowSaveDialog(true)}
-                  size="lg"
-                  className="w-full h-16 text-lg"
-                >
-                  Save This Person
-                </Button>
+                <div className="space-y-3">
+                  <div className="bg-warning/10 border border-warning/30 p-4 rounded-lg">
+                    <p className="text-sm font-medium text-warning-foreground">
+                      👤 This is someone new! Would you like to save them so I can remember them next time?
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      console.log('💾 Save button clicked');
+                      console.log('Captured image:', capturedImage ? 'Available' : 'Missing');
+                      console.log('Face descriptor:', faceDescriptor ? 'Available' : 'Missing');
+                      setShowSaveDialog(true);
+                    }}
+                    size="lg"
+                    className="w-full h-16 text-lg"
+                  >
+                    Save This Person
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
