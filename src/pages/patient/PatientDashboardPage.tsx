@@ -72,7 +72,7 @@ export default function PatientDashboardPage() {
     if (!audioEnabled) return;
     
     const hour = new Date().getHours();
-    const guidanceMessages = [];
+    const guidanceMessages: string[] = [];
     
     // Time-based reminders
     if (hour >= 8 && hour < 9) {

@@ -35,6 +35,7 @@ export default function PatientFaceRecognitionPage() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [faceDescriptor, setFaceDescriptor] = useState<Float32Array | null>(null);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [noFaceDetectedCount, setNoFaceDetectedCount] = useState(0);
   
   // Form state for saving new face
   const [newFaceName, setNewFaceName] = useState('');
@@ -326,8 +327,25 @@ export default function PatientFaceRecognitionPage() {
 
       if (detections.length === 0) {
         setCurrentDetection(null);
+        
+        // Increment no face counter
+        setNoFaceDetectedCount(prev => {
+          const newCount = prev + 1;
+          
+          // After 3 consecutive detections with no face (6 seconds), announce it
+          if (newCount === 3) {
+            whisper('No face detected. Please point the camera at someone.');
+            console.log('🔍 No face detected after 6 seconds');
+          }
+          
+          return newCount;
+        });
+        
         return;
       }
+      
+      // Reset no face counter when face is detected
+      setNoFaceDetectedCount(0);
     } catch (error) {
       console.error('Error during face detection:', error);
       return;
@@ -822,16 +840,26 @@ export default function PatientFaceRecognitionPage() {
         {/* Current Detection */}
         {/* Detection Status */}
         {cameraActive && !currentDetection && (
-          <Card className="border-muted">
+          <Card className={noFaceDetectedCount >= 3 ? "border-warning" : "border-muted"}>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                  <Camera className="w-6 h-6 text-muted-foreground animate-pulse" />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  noFaceDetectedCount >= 3 ? 'bg-warning/10' : 'bg-muted'
+                }`}>
+                  {noFaceDetectedCount >= 3 ? (
+                    <AlertCircle className="w-6 h-6 text-warning" />
+                  ) : (
+                    <Camera className="w-6 h-6 text-muted-foreground animate-pulse" />
+                  )}
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Scanning for Faces...</CardTitle>
+                  <CardTitle className="text-xl">
+                    {noFaceDetectedCount >= 3 ? 'No Face Detected' : 'Scanning for Faces...'}
+                  </CardTitle>
                   <CardDescription>
-                    Point the camera at someone's face. Make sure there is good lighting.
+                    {noFaceDetectedCount >= 3 
+                      ? 'No one is visible in the camera. Please point the camera at someone.'
+                      : 'Point the camera at someone\'s face. Make sure there is good lighting.'}
                   </CardDescription>
                 </div>
               </div>
