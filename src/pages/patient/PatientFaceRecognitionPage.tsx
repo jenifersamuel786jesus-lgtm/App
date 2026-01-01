@@ -154,16 +154,28 @@ export default function PatientFaceRecognitionPage() {
           console.error('Error calling play():', playError);
         }
         
-        // Start face detection after video is playing
+        // Start face detection immediately and on multiple events
+        console.log('Starting face detection immediately...');
+        startFaceDetection();
+        
+        // Also start on metadata loaded
         videoRef.current.onloadedmetadata = () => {
           console.log('Video metadata loaded');
           console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
           videoRef.current?.play().then(() => {
             console.log('Video playing after metadata loaded');
+            console.log('Restarting face detection to ensure it runs...');
             startFaceDetection();
           }).catch(err => {
             console.error('Error playing video after metadata:', err);
           });
+        };
+        
+        // Also start on canplay event
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play event fired');
+          console.log('Ensuring face detection is running...');
+          startFaceDetection();
         };
 
         whisper('Camera activated. I will help you recognize people.');
@@ -297,9 +309,15 @@ export default function PatientFaceRecognitionPage() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // Check if video is ready
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-      console.log('Video not ready yet, readyState:', video.readyState);
+    // Check if video has valid dimensions
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      console.log('Video dimensions not ready yet:', video.videoWidth, 'x', video.videoHeight);
+      return;
+    }
+
+    // Check if video is ready (less strict - allow HAVE_CURRENT_DATA or better)
+    if (video.readyState < video.HAVE_CURRENT_DATA) {
+      console.log('Video not ready yet, readyState:', video.readyState, '(need at least', video.HAVE_CURRENT_DATA, ')');
       return;
     }
 
@@ -312,6 +330,7 @@ export default function PatientFaceRecognitionPage() {
     let detections;
     try {
       // Detect faces
+      console.log('Calling faceapi.detectAllFaces...');
       detections = await faceapi
         .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
@@ -326,6 +345,7 @@ export default function PatientFaceRecognitionPage() {
       });
 
       if (detections.length === 0) {
+        console.log('No faces detected in this frame');
         setCurrentDetection(null);
         
         // Increment no face counter
@@ -344,10 +364,15 @@ export default function PatientFaceRecognitionPage() {
         return;
       }
       
+      console.log('✅ Face(s) detected! Processing first face...');
       // Reset no face counter when face is detected
       setNoFaceDetectedCount(0);
     } catch (error) {
-      console.error('Error during face detection:', error);
+      console.error('❌ Error during face detection:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+      });
       return;
     }
 
