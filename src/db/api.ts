@@ -119,6 +119,9 @@ export const updatePatient = async (patientId: string, updates: Partial<Patient>
 
 // Caregiver operations
 export const getCaregiverByProfileId = async (profileId: string): Promise<CaregiverWithProfile | null> => {
+  console.log('🔍 getCaregiverByProfileId called');
+  console.log('Looking for caregiver with profile_id:', profileId);
+  
   const { data, error } = await supabase
     .from('caregivers')
     .select('*, profile:profiles!caregivers_profile_id_fkey(*)')
@@ -126,14 +129,39 @@ export const getCaregiverByProfileId = async (profileId: string): Promise<Caregi
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching caregiver:', error);
+    console.error('❌ Error fetching caregiver:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+    });
     return null;
   }
+  
+  if (data) {
+    console.log('✅ Caregiver found:', {
+      id: data.id,
+      full_name: data.full_name,
+      profile_id: data.profile_id,
+    });
+  } else {
+    console.log('ℹ️ No caregiver found for profile_id:', profileId);
+  }
+  
   return data;
 };
 
 export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Caregiver | null> => {
-  console.log('createCaregiver called with:', caregiver);
+  console.log('👤 createCaregiver called');
+  console.log('Caregiver data:', {
+    profile_id: caregiver.profile_id,
+    full_name: caregiver.full_name,
+    device_id: caregiver.device_id,
+  });
+  
+  // Check current auth status
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log('Current auth user:', user?.id);
+  console.log('Profile ID matches auth?', user?.id === caregiver.profile_id);
   
   const { data, error } = await supabase
     .from('caregivers')
@@ -142,17 +170,32 @@ export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Ca
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating caregiver:', error);
+    console.error('❌ Error creating caregiver:', error);
     console.error('Error details:', {
       message: error.message,
       details: error.details,
       hint: error.hint,
-      code: error.code
+      code: error.code,
     });
+    
+    // Provide specific error messages
+    if (error.code === '23505') {
+      console.error('🚫 UNIQUE CONSTRAINT VIOLATION: A caregiver profile already exists for this user');
+    } else if (error.code === '42501') {
+      console.error('🚫 RLS POLICY VIOLATION: User not authorized to create caregiver record');
+    } else if (error.code === '23503') {
+      console.error('🚫 FOREIGN KEY VIOLATION: Profile does not exist');
+    }
+    
     return null;
   }
   
-  console.log('Caregiver created successfully:', data);
+  console.log('✅ Caregiver created successfully:', {
+    id: data?.id,
+    full_name: data?.full_name,
+    profile_id: data?.profile_id,
+  });
+  
   return data;
 };
 
