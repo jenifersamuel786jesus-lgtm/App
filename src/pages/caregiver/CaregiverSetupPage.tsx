@@ -102,7 +102,15 @@ export default function CaregiverSetupPage() {
       console.log('✅ Caregiver creation result:', caregiver);
       
       if (!caregiver) {
-        setError('Failed to create caregiver profile. Please check your connection and try again.');
+        console.error('❌ Caregiver creation returned null');
+        console.error('This could mean:');
+        console.error('1. User is not authenticated');
+        console.error('2. Profile ID does not match auth.uid()');
+        console.error('3. RLS policy violation');
+        console.error('4. Database connection issue');
+        console.error('Check the console logs above for specific error details');
+        
+        setError('Failed to create caregiver profile. Please check the browser console for detailed error information, then try logging out and logging back in.');
         setLoading(false);
         return;
       }
@@ -172,6 +180,13 @@ export default function CaregiverSetupPage() {
             <CardDescription>
               Let's set up your RemZy caregiver profile
             </CardDescription>
+            {/* Debug Info - Remove in production */}
+            {profile && (
+              <div className="mt-2 p-2 bg-muted rounded text-xs font-mono">
+                <div>Profile ID: {profile.id.substring(0, 8)}...</div>
+                <div>Role: {profile.role || 'none'}</div>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (
