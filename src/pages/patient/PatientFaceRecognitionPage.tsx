@@ -99,14 +99,18 @@ export default function PatientFaceRecognitionPage() {
         whisper(`Face recognition is ready. Tap the start camera button to begin recognizing people. I will whisper their names to you when I see them.`);
       }, 2000);
     } catch (error) {
-      console.error('Error loading face detection models:', error);
+      console.error('❌ Error loading face detection models:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast({
         title: 'Model Loading Failed',
-        description: 'Face recognition may not work properly. Please refresh the page.',
+        description: 'Face recognition cannot work without models. Please refresh the page.',
         variant: 'destructive',
       });
-      // Set modelsLoaded to true anyway to allow testing camera
-      setModelsLoaded(true);
+      // DO NOT set modelsLoaded to true if models failed to load!
+      setModelsLoaded(false);
     }
   };
 
@@ -716,13 +720,34 @@ export default function PatientFaceRecognitionPage() {
     console.log('Name:', newFaceName);
     console.log('Patient:', patient?.id);
     console.log('Face descriptor:', faceDescriptor ? 'Present' : 'Missing');
+    console.log('Face descriptor length:', faceDescriptor?.length);
     console.log('Captured image:', capturedImage ? 'Present' : 'Missing');
     
-    if (!newFaceName.trim() || !patient || !faceDescriptor) {
-      console.error('❌ Missing required information');
+    if (!newFaceName.trim()) {
+      console.error('❌ Name is missing');
       toast({
         title: 'Missing Information',
         description: 'Please enter a name for this person.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!patient) {
+      console.error('❌ Patient is missing');
+      toast({
+        title: 'Error',
+        description: 'Patient information not found. Please refresh the page.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!faceDescriptor || faceDescriptor.length === 0) {
+      console.error('❌ Face descriptor is missing or empty');
+      toast({
+        title: 'Face Data Missing',
+        description: 'Could not capture face data. Please try capturing the photo again.',
         variant: 'destructive',
       });
       return;
@@ -731,7 +756,11 @@ export default function PatientFaceRecognitionPage() {
     try {
       console.log('📝 Saving face to database...');
       // Save face encoding as JSON string
-      const encodingString = JSON.stringify(Array.from(faceDescriptor));
+      const encodingArray = Array.from(faceDescriptor);
+      console.log('Face encoding array length:', encodingArray.length);
+      console.log('Face encoding sample:', encodingArray.slice(0, 5));
+      const encodingString = JSON.stringify(encodingArray);
+      console.log('Face encoding string length:', encodingString.length);
 
       const newFace = await createKnownFace({
         patient_id: patient.id,
@@ -746,6 +775,7 @@ export default function PatientFaceRecognitionPage() {
 
       if (newFace) {
         console.log('✅ Face saved successfully:', newFace.id);
+        console.log('Saved face encoding status:', newFace.face_encoding ? 'Present' : 'NULL');
         toast({
           title: 'Contact Saved',
           description: `${newFaceName} has been added to your contacts.`,
@@ -766,9 +796,20 @@ export default function PatientFaceRecognitionPage() {
         setCapturedImage(null);
         setFaceDescriptor(null);
         console.log('🧹 Form reset complete');
+      } else {
+        console.error('❌ createKnownFace returned null');
+        toast({
+          title: 'Save Failed',
+          description: 'Database operation failed. Please check permissions and try again.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('❌ Error saving face:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       toast({
         title: 'Save Failed',
         description: 'Could not save this person. Please try again.',
