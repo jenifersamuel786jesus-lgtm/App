@@ -559,7 +559,7 @@ export const createAlert = async (alert: Partial<Alert>): Promise<Alert | null> 
     patient_id: alert.patient_id,
     alert_type: alert.alert_type,
     title: alert.title,
-    message: alert.message?.substring(0, 50) + '...',
+    message: alert.message ? alert.message.substring(0, 50) + '...' : 'N/A',
   });
   
   const { data, error } = await supabase
