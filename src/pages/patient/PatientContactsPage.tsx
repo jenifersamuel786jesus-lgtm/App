@@ -25,7 +25,6 @@ export default function PatientContactsPage() {
   const [newContact, setNewContact] = useState({
     person_name: '',
     relationship: '',
-    notes: '',
   });
 
   useEffect(() => {
@@ -110,7 +109,6 @@ export default function PatientContactsPage() {
       patient_id: patient.id,
       person_name: newContact.person_name,
       relationship: newContact.relationship || null,
-      notes: newContact.notes || null,
       face_encoding: null,
       photo_url: photoUrl,
     });
@@ -121,7 +119,7 @@ export default function PatientContactsPage() {
         description: `${newContact.person_name} has been added to your contacts`,
       });
       setDialogOpen(false);
-      setNewContact({ person_name: '', relationship: '', notes: '' });
+      setNewContact({ person_name: '', relationship: '' });
       setPhotoUrl(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -237,23 +235,13 @@ export default function PatientContactsPage() {
                     className="text-lg h-12"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-base">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={newContact.notes}
-                    onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
-                    placeholder="Any helpful information to remember..."
-                    className="text-lg min-h-24"
-                  />
-                </div>
                 <div className="flex gap-3 pt-2">
                   <Button 
                     type="button"
                     variant="outline" 
                     onClick={() => {
                       setDialogOpen(false);
-                      setNewContact({ person_name: '', relationship: '', notes: '' });
+                      setNewContact({ person_name: '', relationship: '' });
                       setPhotoUrl(null);
                       if (fileInputRef.current) {
                         fileInputRef.current.value = '';
@@ -322,11 +310,8 @@ export default function PatientContactsPage() {
                           {contact.relationship}
                         </CardDescription>
                       )}
-                      {contact.notes && (
-                        <p className="text-muted-foreground mt-3 text-base">{contact.notes}</p>
-                      )}
                       <p className="text-sm text-muted-foreground mt-3">
-                        Added {new Date(contact.added_at).toLocaleDateString('en-US', {
+                        Added {new Date(contact.created_at).toLocaleDateString('en-US', {
                           month: 'long',
                           day: 'numeric',
                           year: 'numeric',

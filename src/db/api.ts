@@ -188,7 +188,7 @@ export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Ca
   console.log('Caregiver data:', {
     profile_id: caregiver.profile_id,
     full_name: caregiver.full_name,
-    device_id: caregiver.device_id,
+    phone: caregiver.phone,
   });
   
   // Check current auth status

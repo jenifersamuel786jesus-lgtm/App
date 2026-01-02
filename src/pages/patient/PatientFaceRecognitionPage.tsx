@@ -42,7 +42,6 @@ export default function PatientFaceRecognitionPage() {
   // Form state for saving new face
   const [newFaceName, setNewFaceName] = useState('');
   const [newFaceRelationship, setNewFaceRelationship] = useState('');
-  const [newFaceNotes, setNewFaceNotes] = useState('');
   
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -548,13 +547,6 @@ export default function PatientFaceRecognitionPage() {
       
       // Single whisper with combined message
       whisper(fullMessage);
-      
-      // Update last_seen for this face
-      if (match.faceId) {
-        await updateKnownFace(match.faceId, {
-          last_seen: new Date().toISOString(),
-        });
-      }
     } else {
       // Unknown face detected
       console.log('🆕 Unknown face detected!');
@@ -947,11 +939,8 @@ export default function PatientFaceRecognitionPage() {
         patient_id: patient.id,
         person_name: newFaceName,
         relationship: newFaceRelationship || null,
-        notes: newFaceNotes || null,
         face_encoding: encodingString,
         photo_url: capturedImage,
-        added_at: new Date().toISOString(),
-        last_seen: new Date().toISOString(),
       });
 
       if (newFace) {
@@ -973,7 +962,6 @@ export default function PatientFaceRecognitionPage() {
         setShowSaveDialog(false);
         setNewFaceName('');
         setNewFaceRelationship('');
-        setNewFaceNotes('');
         setCapturedImage(null);
         setFaceDescriptor(null);
         console.log('🧹 Form reset complete');
@@ -1405,17 +1393,6 @@ export default function PatientFaceRecognitionPage() {
                 onChange={(e) => setNewFaceRelationship(e.target.value)}
                 placeholder="e.g., Friend, Doctor, Neighbor"
                 className="h-12 text-base"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-base">Notes (Optional)</Label>
-              <Textarea
-                id="notes"
-                value={newFaceNotes}
-                onChange={(e) => setNewFaceNotes(e.target.value)}
-                placeholder="Any details to remember..."
-                className="min-h-20 text-base"
               />
             </div>
             

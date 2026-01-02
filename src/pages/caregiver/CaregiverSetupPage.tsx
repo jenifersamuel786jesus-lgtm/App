@@ -20,6 +20,7 @@ export default function CaregiverSetupPage() {
   
   const [formData, setFormData] = useState({
     full_name: '',
+    phone: '',
     linking_code: '',
   });
 
@@ -92,7 +93,7 @@ export default function CaregiverSetupPage() {
       const caregiver = await createCaregiver({
         profile_id: profile.id,
         full_name: formData.full_name.trim(),
-        device_id: crypto.randomUUID(),
+        phone: formData.phone?.trim() || null,
       });
       
       console.log('Caregiver creation result:', caregiver);
@@ -184,6 +185,18 @@ export default function CaregiverSetupPage() {
                     className="pl-10 text-lg h-14"
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-base">Phone Number (Optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="text-lg h-14"
+                />
               </div>
               
               <Button onClick={handleNext} className="w-full h-14 text-lg" disabled={!formData.full_name}>

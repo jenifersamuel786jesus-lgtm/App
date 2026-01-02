@@ -22,14 +22,11 @@ export interface Patient {
   profile_id: string;
   full_name: string;
   date_of_birth: string | null;
+  device_id: string;
+  linking_code: string;
   safe_area_lat: number | null;
   safe_area_lng: number | null;
-  safe_area_radius: number;
-  heart_rate_min: number;
-  heart_rate_max: number;
-  inactivity_threshold_hours: number;
-  device_id: string | null;
-  linking_code: string | null;
+  safe_area_radius: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +35,7 @@ export interface Caregiver {
   id: string;
   profile_id: string;
   full_name: string;
-  device_id: string | null;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,11 +66,10 @@ export interface KnownFace {
   patient_id: string;
   person_name: string;
   relationship: string | null;
-  notes: string | null;
   face_encoding: string | null;
   photo_url: string | null;
-  added_at: string;
-  last_seen: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UnknownEncounter {
