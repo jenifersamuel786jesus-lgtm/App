@@ -16,11 +16,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
   
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
-  const from = (location.state as { from?: string })?.from || '/';
+  const from = (location.state as { from?: string })?.from || '/mode-selection';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +33,12 @@ export default function LoginPage() {
       setError(error.message || 'Failed to sign in');
       setLoading(false);
     } else {
-      navigate(from, { replace: true });
+      // Refresh profile to get latest data
+      await refreshProfile();
+      
+      // For now, always go to mode selection after login
+      // The mode selection page will redirect if user already has a role
+      navigate('/mode-selection', { replace: true });
     }
   };
 
@@ -60,7 +65,8 @@ export default function LoginPage() {
       setError(error.message || 'Failed to sign up');
       setLoading(false);
     } else {
-      navigate(from, { replace: true });
+      // After signup, always go to mode selection
+      navigate('/mode-selection', { replace: true });
     }
   };
 
