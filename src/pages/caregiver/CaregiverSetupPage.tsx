@@ -86,17 +86,20 @@ export default function CaregiverSetupPage() {
     setError('');
     
     try {
-      console.log('Creating caregiver with profile_id:', profile.id);
+      console.log('🚀 Starting caregiver setup...');
+      console.log('Profile ID:', profile.id);
       console.log('Full name:', formData.full_name);
+      console.log('Linking code:', formData.linking_code);
       
       // Create caregiver record
+      console.log('📝 Creating caregiver record...');
       const caregiver = await createCaregiver({
         profile_id: profile.id,
         full_name: formData.full_name.trim(),
         phone: formData.phone?.trim() || null,
       });
       
-      console.log('Caregiver creation result:', caregiver);
+      console.log('✅ Caregiver creation result:', caregiver);
       
       if (!caregiver) {
         setError('Failed to create caregiver profile. Please check your connection and try again.');
@@ -106,36 +109,43 @@ export default function CaregiverSetupPage() {
       
       // If linking code provided, link to patient
       if (formData.linking_code) {
-        console.log('Attempting to link with code:', formData.linking_code);
+        console.log('🔗 Attempting to link with code:', formData.linking_code);
         const patient = await findPatientByLinkingCode(formData.linking_code.toUpperCase());
         
-        console.log('Patient found:', patient);
+        console.log('👤 Patient found:', patient);
         
         if (!patient) {
-          setError('Invalid linking code. No patient found with this code. Please check and try again.');
+          setError(`Invalid linking code "${formData.linking_code}". No patient found with this code. Please check and try again.`);
           setLoading(false);
           return;
         }
         
-        console.log('Linking devices - Patient ID:', patient.id, 'Caregiver ID:', caregiver.id);
+        console.log('🔗 Linking devices...');
+        console.log('Patient ID:', patient.id);
+        console.log('Caregiver ID:', caregiver.id);
+        
         const linkResult = await linkDevices(patient.id, caregiver.id);
-        console.log('Link result:', linkResult);
+        console.log('✅ Link result:', linkResult);
         
         if (!linkResult) {
-          setError('Failed to link devices. Please try again.');
+          setError('Failed to link devices. This could be due to permissions or a duplicate link. Please try again or contact support.');
           setLoading(false);
           return;
         }
+        
+        console.log('🎉 Successfully linked to patient:', patient.full_name);
       }
       
       // Update role to caregiver
+      console.log('📝 Updating profile role to caregiver...');
       await updateProfile(profile.id, { role: 'caregiver' });
       await refreshProfile();
       
+      console.log('✅ Setup complete! Navigating to dashboard...');
       navigate('/caregiver/dashboard', { replace: true });
     } catch (err) {
-      setError('An error occurred during setup');
-      console.error(err);
+      console.error('❌ Error in handleComplete:', err);
+      setError(`An error occurred during setup: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
     
     setLoading(false);

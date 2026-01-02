@@ -272,8 +272,47 @@ export const getLinkedCaregivers = async (patientId: string): Promise<CaregiverW
 };
 
 export const linkDevices = async (patientId: string, caregiverId: string): Promise<DeviceLink | null> => {
-  console.log('linkDevices called with:', { patientId, caregiverId });
+  console.log('🔗 linkDevices called with:', { patientId, caregiverId });
   
+  // Check if link already exists
+  const { data: existingLink, error: checkError } = await supabase
+    .from('device_links')
+    .select('*')
+    .eq('patient_id', patientId)
+    .eq('caregiver_id', caregiverId)
+    .maybeSingle();
+  
+  if (checkError) {
+    console.error('❌ Error checking existing link:', checkError);
+  }
+  
+  if (existingLink) {
+    console.log('ℹ️ Link already exists:', existingLink);
+    // If link exists but is inactive, reactivate it
+    if (!existingLink.is_active) {
+      console.log('🔄 Reactivating existing link...');
+      const { data: updatedLink, error: updateError } = await supabase
+        .from('device_links')
+        .update({ is_active: true })
+        .eq('id', existingLink.id)
+        .select()
+        .maybeSingle();
+      
+      if (updateError) {
+        console.error('❌ Error reactivating link:', updateError);
+        return null;
+      }
+      
+      console.log('✅ Link reactivated successfully');
+      return updatedLink;
+    }
+    
+    console.log('✅ Link already active, returning existing link');
+    return existingLink;
+  }
+  
+  // Create new link
+  console.log('📝 Creating new device link...');
   const { data, error } = await supabase
     .from('device_links')
     .insert({ patient_id: patientId, caregiver_id: caregiverId })
@@ -281,7 +320,7 @@ export const linkDevices = async (patientId: string, caregiverId: string): Promi
     .maybeSingle();
 
   if (error) {
-    console.error('Error linking devices:', error);
+    console.error('❌ Error linking devices:', error);
     console.error('Error details:', {
       message: error.message,
       details: error.details,
@@ -291,7 +330,7 @@ export const linkDevices = async (patientId: string, caregiverId: string): Promi
     return null;
   }
   
-  console.log('Devices linked successfully:', data);
+  console.log('✅ Devices linked successfully:', data);
   return data;
 };
 
