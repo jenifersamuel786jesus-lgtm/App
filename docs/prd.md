@@ -42,8 +42,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
    - **Link Establishment**: Upon successful code entry/scan, system establishes secure link between devices
    - **Link Confirmation**: Both devices display confirmation message with linked user details
 6. **Dashboard Access**: User proceeds to respective dashboard (Patient Dashboard or Caregiver Dashboard)
-
-**Proper Linking Mechanism**
+\n**Proper Linking Mechanism**
 - Patient device generates secure 6-digit alphanumeric code (e.g., A3X7K9) valid for 10 minutes
 - QR code contains encrypted linking payload with patient_id, device_id, and timestamp
 - Caregiver enters code or scans QR code in Caregiver Mode linking screen
@@ -90,12 +89,13 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - System identifies face as unrecognized (no match in database)
   - Google Cloud Vision AI analyzes person's appearance and behavior\n  - AI generates contextual warning with behavioral description
   - Example output: It is a new person he is watching you silently or Unknown person is approaching you wearing red hat
-  - Whisper delivered immediately with prompt to save person\n  - Patient can tap Save button to add person with name, relationship, and auto-captured face photo
+  - Whisper delivered immediately with prompt to save person
+  - Patient can tap Save button to add person with name, relationship, and auto-captured face photo
 
-**AI-Enhanced Contextual Analysis**
-- **Clothing Detection**: Google Cloud Vision AI detects clothing color, type, and style (e.g., green shirt, blue jacket, red dress)
+**AI-Enhanced Contextual Analysis**\n- **Clothing Detection**: Google Cloud Vision AI detects clothing color, type, and style (e.g., green shirt, blue jacket, red dress)
 - **Accessory Recognition**: Identifies glasses, hats, bags, jewelry, and other accessories
-- **Behavioral Analysis**: Detects person's actions (watching, approaching, standing, sitting, walking, talking)\n- **Emotional Context**: Analyzes facial expressions for emotional state (smiling, neutral, concerned)\n- **Environmental Context**: Identifies background elements (indoor/outdoor, room type, nearby objects)
+- **Behavioral Analysis**: Detects person's actions (watching, approaching, standing, sitting, walking, talking)
+- **Emotional Context**: Analyzes facial expressions for emotional state (smiling, neutral, concerned)\n- **Environmental Context**: Identifies background elements (indoor/outdoor, room type, nearby objects)
 - **Natural Language Generation**: AI combines all detected attributes into natural, conversational descriptions
 \n**Activity and Posture Detection**
 - Google ML Kit Pose Detection identifies human body keypoints and skeleton structure
@@ -120,8 +120,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 **Performance and Robustness**
 - Face detection latency: <500ms from frame capture to detection result
 - Face recognition latency: <1.5 seconds from detection to identity match
-- Contextual analysis latency: <2 seconds from detection to full description generation
-- Total whisper delivery: <2.5 seconds from face detection to audio output
+- Contextual analysis latency: <2 seconds from detection to full description generation\n- Total whisper delivery: <2.5 seconds from face detection to audio output
 - Recognition accuracy: >95% for known faces with Google ML Kit optimized models
 - False positive rate: <5% with confidence threshold tuning
 - Operates reliably in indoor, outdoor, low light, and bright sunlight conditions
@@ -133,7 +132,7 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - Face encodings encrypted before cloud storage
 - Contextual analysis uses Google Cloud Vision AI with secure API calls
 - Face photos stored in encrypted S3/Cloud Storage buckets
-- Compliance with biometric data regulations (GDPR Article 9, BIPA)\n\n### 3.2 Contact Management with Photo Support
+- Compliance with biometric data regulations (GDPR Article 9, BIPA)\n\n### 3.2 Contact Management with Photo Support and Deletion
 - Patient can manually add contacts independently
 - Contact attributes:\n  - Name (required)
   - Relationship (friend, family, doctor, neighbor, etc.)
@@ -149,6 +148,12 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - Photo automatically processed for face recognition training and matching using Google ML Kit
   - Circular thumbnail display in contact list
   - High-quality photo storage with compression optimization
+- **Contact Deletion**: Patient can delete contacts if saved by mistake
+  - Swipe-to-delete gesture in contact list
+  - Confirmation prompt before deletion to prevent accidental removal
+  - Deleted contact removed from local database and synced to cloud
+  - Associated face encoding and photos deleted from Known_Faces table
+  - Deletion logged in Activity_Logs for caregiver visibility
 - All contact photos encrypted and stored securely in cloud storage
 - Contact photos synced to caregiver device for reference
 - Automatic face encoding generation for all contact photos to enable recognition
@@ -159,11 +164,9 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - Whispered content includes:
   - Real-time face recognition results with AI-enhanced contextual descriptions (name, relationship, clothing, activity, behavior)
   - Task reminders\n  - Orientation information (day, date, location, identity)
-  - Safety warnings
-- Text-to-speech with calm, friendly, human-like tone
+  - Safety warnings\n- Text-to-speech with calm, friendly, human-like tone
 - Instant audio delivery with minimal delay (<500ms)
-\n### 3.4 AI Companion\n- Proactive conversational AI providing frequent check-ins
-- Core functions:
+\n### 3.4 AI Companion\n- Proactive conversational AI providing frequent check-ins\n- Core functions:
   - Identity reminders (who they are)\n  - Temporal orientation (current day, date, time)
   - Spatial orientation (current location)\n  - Recent social interactions recap with contextual details
   - Task status updates
@@ -173,21 +176,25 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
   - What is this person doing? (triggers activity detection and behavioral analysis)
 - Context-aware responses using real-time camera data, task logs, activity recognition, face recognition events, and interaction history
 - Reassuring, friendly, and simple communication style
-\n### 3.5 Task and Reminder System
-- Patient can independently add tasks\n- Task attributes:
+\n### 3.5 Task and Reminder System with Deletion\n- Patient can independently add tasks\n- Task attributes:
   - Name\n  - Time
   - Optional location
 - Bluetooth whisper reminders at scheduled times
 - Task status options:
   - Completed
   - Skipped
+- **Task Deletion**: Patient can delete tasks if created by mistake
+  - Swipe-to-delete gesture in task list
+  - Confirmation prompt before deletion to prevent accidental removal
+  - Deleted task removed from local database and synced to cloud
+  - Deletion logged in Activity_Logs for caregiver visibility
+  - Scheduled reminders for deleted tasks automatically cancelled
 - All status changes logged and synced to caregiver device
 \n### 3.6 Location Tracking\n- Real-time GPS tracking with background updates
 - Safe area boundary monitoring
 - Automatic caregiver alert when patient exits safe zone
 - Location data included in all alerts and logs
-\n### 3.7 Health Awareness
-- Integration with wearable or phone-based health metrics:\n  - Heart rate\n  - Step count
+\n### 3.7 Health Awareness\n- Integration with wearable or phone-based health metrics:\n  - Heart rate\n  - Step count
   - Inactivity duration
 - Abnormal pattern detection\n- Automatic caregiver alerts when thresholds exceeded
 \n### 3.8 Emergency Panic Button
@@ -195,21 +202,21 @@ RemZy is a production-ready mobile application ecosystem designed to support Alz
 - Single tap triggers:\n  - Immediate caregiver alert
   - Live location transmission
   - Optional camera snapshot or live feed
-\n### 3.9 Automatic Logging
-- Comprehensive logging of all activities:\n  - Real-time face recognition events with AI-enhanced contextual descriptions (timestamp, person name, recognition confidence, detected attributes, clothing, activity, behavior, face photo)
+\n### 3.9 Automatic Logging\n- Comprehensive logging of all activities:\n  - Real-time face recognition events with AI-enhanced contextual descriptions (timestamp, person name, recognition confidence, detected attributes, clothing, activity, behavior, face photo)
   - Task reminders and completions
   - Unknown person encounters with contextual analysis and face photos
-  - Contact additions and photo updates
+  - Contact additions, updates, and deletions
+  - Task additions and deletions
   - AI conversation transcripts
-  - Location history\n  - Health data readings
+  - Location history
+  - Health data readings
 - Real-time sync to caregiver device via cloud backend
 \n### 3.10 Caregiver Link Status Display
 - **Linked Caregivers Section**: Displays accurate count and list of all linked caregivers
 - **Caregiver Details**: Shows caregiver name, link timestamp, and connection status (active/inactive)
 - **Real-time Updates**: Caregiver list updates immediately when new caregiver links or existing link is removed
 - **Visual Indicators**: Green checkmark for active links, gray icon for inactive links
-
-## 4. Caregiver Mode Features
+\n## 4. Caregiver Mode Features
 
 ### 4.1 Dashboard\n- Real-time patient location map
 - Task status overview
@@ -225,6 +232,8 @@ Instant alerts for:
 - Safe area boundary breach
 - New face saved by patient
 - New contact added with photo
+- Contact deleted by patient
+- Task deleted by patient
 - Face recognition or activity detection system errors or interruptions
 - **Alert Delivery**: All alerts reliably delivered via push notifications, in-app notifications, and optional SMS/email
 - **Alert Acknowledgment**: Caregivers can acknowledge alerts to mark as reviewed
@@ -236,11 +245,10 @@ Instant alerts for:
 \n### 4.4 Logs and Reports
 - Searchable history of:\n  - Real-time face recognition events with AI-enhanced contextual descriptions, accuracy scores, and detected attributes
   - Tasks\n  - People encounters with face photos and behavioral context
-  - Contact additions and updates
+  - Contact additions, updates, and deletions\n  - Task additions and deletions
   - Location records
   - AI interactions
-  - Health data
-- Filterable by date, type, and status
+  - Health data\n- Filterable by date, type, and status
 \n### 4.5 Patient Management
 - Support for multiple patient linkages\n- Customizable settings:\n  - Reminder tones
   - Reminder frequency
@@ -297,9 +305,11 @@ Instant alerts for:
 - Clothing and accessory recognition
 - Behavioral analysis and activity classification
 - Emotional context detection
-- Environmental context identification\n- Natural language description generation
+- Environmental context identification
+- Natural language description generation
 - Integration with face recognition pipeline for enhanced output
-\n**Activity Recognition Service (Google ML Kit Pose Detection)**\n- Real-time human pose estimation using Google ML Kit Pose Detection API
+\n**Activity Recognition Service (Google ML Kit Pose Detection)**
+- Real-time human pose estimation using Google ML Kit Pose Detection API
 - Activity classification (standing, sitting, walking, lying down, bending, reaching, waving, talking)
 - Pose keypoint tracking and skeleton structure analysis
 - Multi-person activity tracking
@@ -316,6 +326,7 @@ Instant alerts for:
 - Task status tracking\n- Push notification integration
 - **Caregiver Task Management**: API endpoints for caregiver-initiated task operations
 - **Task Sync Engine**: Real-time task synchronization between caregiver and patient devices
+- **Task Deletion Handling**: Process patient-initiated task deletions with sync and logging
 \n**Location Service**
 - Real-time GPS data processing
 - Geofencing and safe area monitoring
@@ -338,6 +349,7 @@ Instant alerts for:
 - Conflict resolution mechanisms
 - **Link Status Sync**: Real-time propagation of caregiver link status to patient devices\n- **Contact Sync**: Bidirectional contact synchronization with conflict resolution
 - **Task Sync**: Bidirectional task synchronization with timestamp-based conflict resolution
+- **Deletion Sync**: Real-time propagation of contact and task deletions
 
 **Alert and Notification Service**
 - Multi-channel alert delivery (push, SMS, email)\n- Alert priority management
@@ -352,7 +364,9 @@ Instant alerts for:
 - Face encoding generation and update using Google ML Kit
 - Real-time contact synchronization
 - Audit logging for caregiver actions
-\n**Database Reset Service**
+- **Contact Deletion Handling**: Process patient-initiated contact deletions with face encoding cleanup
+
+**Database Reset Service**
 - Admin API endpoint for complete database wipe
 - Truncate all tables in PostgreSQL
 - Flush all Redis cache keys
@@ -405,16 +419,19 @@ Instant alerts for:
 - task_name (VARCHAR)
 - scheduled_time (TIMESTAMP)
 - location (VARCHAR, nullable)
-- status (ENUM: pending, completed, skipped)
+- status (ENUM: pending, completed, skipped, deleted)
 - completion_time (TIMESTAMP, nullable)
 - created_at (TIMESTAMP)
 - **created_by** (ENUM: patient, caregiver)
 - **caregiver_id** (UUID, foreign key, nullable)
 - **last_modified_by** (ENUM: patient, caregiver)
 - **last_modified_at** (TIMESTAMP)
+- **deleted_at** (TIMESTAMP, nullable)
+- **deleted_by** (ENUM: patient, caregiver, nullable)
 
 **Contacts**
-- contact_id (UUID, primary key)\n- patient_id (UUID, foreign key)
+- contact_id (UUID, primary key)
+- patient_id (UUID, foreign key)
 - contact_name (VARCHAR)
 - relationship (VARCHAR)
 - phone_number (VARCHAR, nullable)
@@ -428,8 +445,11 @@ Instant alerts for:
 - **caregiver_id** (UUID, foreign key, nullable)
 - **last_modified_by** (ENUM: patient, caregiver)
 - **last_modified_at** (TIMESTAMP)
+- **deleted_at** (TIMESTAMP, nullable)
+- **deleted_by** (ENUM: patient, caregiver, nullable)
 \n**Known_Faces**
-- face_id (UUID, primary key)\n- patient_id (UUID, foreign key)
+- face_id (UUID, primary key)
+- patient_id (UUID, foreign key)
 - person_name (VARCHAR)
 - relationship_note (VARCHAR, nullable)
 - face_encoding (BYTEA)\n- face_photo_url (VARCHAR)\n- contact_id (UUID, foreign key, nullable)
@@ -438,6 +458,7 @@ Instant alerts for:
 - added_date (TIMESTAMP)
 - last_recognized_date (TIMESTAMP, nullable)
 - recognition_count (INTEGER, default 0)
+- **deleted_at** (TIMESTAMP, nullable)
 \n**Face_Recognition_Events**
 - event_id (UUID, primary key)
 - patient_id (UUID, foreign key)
@@ -492,7 +513,7 @@ Instant alerts for:
 **Alerts**
 - alert_id (UUID, primary key)
 - patient_id (UUID, foreign key)\n- caregiver_id (UUID, foreign key)
-- alert_type (ENUM: emergency, task_skipped, unknown_person, health_anomaly, geofence_breach, system_error)
+- alert_type (ENUM: emergency, task_skipped, unknown_person, health_anomaly, geofence_breach, system_error, contact_deleted, task_deleted)
 - alert_priority (ENUM: critical, high, medium, low)
 - alert_message (TEXT)
 - alert_data (JSONB)
@@ -502,7 +523,8 @@ Instant alerts for:
 - acknowledged_at (TIMESTAMP, nullable)
 - acknowledged_by (UUID, foreign key, nullable)
 - created_at (TIMESTAMP)
-\n**Audit_Logs**
+
+**Audit_Logs**
 - audit_id (UUID, primary key)
 - patient_id (UUID, foreign key)
 - caregiver_id (UUID, foreign key, nullable)
@@ -545,7 +567,8 @@ Instant alerts for:
 - **Face Detection**: Google ML Kit Face Detection API with on-device processing
 - **Face Recognition**: Google ML Kit Face Recognition with custom face encoding storage
 - **Face Encoding**: 128-dimensional face embeddings generated by Google ML Kit
-- **Matching Algorithm**: Cosine similarity with configurable threshold (default 0.6, adjustable 0.5-0.8)\n- **Training**: Continuous learning with new face additions and automatic model updates
+- **Matching Algorithm**: Cosine similarity with configurable threshold (default 0.6, adjustable 0.5-0.8)
+- **Training**: Continuous learning with new face additions and automatic model updates
 - **Quality Assessment**: Automatic face quality scoring (blur detection, lighting assessment, angle validation)
 
 **Hybrid Processing (Production-Ready)**
@@ -583,8 +606,7 @@ Instant alerts for:
 - **Natural Language Generation**: GPT-4 or similar LLM for description synthesis
 \n**Contextual Analysis Pipeline**
 1. Face detected by Google ML Kit
-2. Face recognized and matched to known person (or identified as unknown)
-3. Current camera frame sent to Google Cloud Vision API
+2. Face recognized and matched to known person (or identified as unknown)\n3. Current camera frame sent to Google Cloud Vision API
 4. Vision API returns detected objects, labels, colors, and scene attributes
 5. Clothing detection model identifies clothing items and colors
 6. Pose Detection API provides activity classification\n7. All attributes combined and sent to NLG model\n8. NLG model generates natural language description
@@ -646,11 +668,11 @@ Instant alerts for:
 - Multi-person tracking with face-activity pairing
 
 ### 7.4 Conversational AI\n
-**Technology Stack**\n- **LLM**: OpenAI GPT-4 or Google PaLM 2\n- **Speech-to-Text**: Google Cloud Speech-to-Text or Whisper API
+**Technology Stack**\n- **LLM**: OpenAI GPT-4 or Google PaLM 2
+- **Speech-to-Text**: Google Cloud Speech-to-Text or Whisper API
 - **Text-to-Speech**: Google Cloud TTS or Amazon Polly
 - **Context Management**: Custom vector database for conversation history
-
-**AI Prompt Engineering**
+\n**AI Prompt Engineering**
 - System prompt: You are a compassionate AI companion for an Alzheimer's patient. Provide clear, simple, reassuring responses. Use patient's name and current context including detected activities and contextual descriptions.
 - Context injection: Recent tasks, location, time, recent interactions, face recognition events with contextual attributes, activity detection results\n- Response formatting: Short sentences, avoid complex vocabulary\n\n**Real-Time Processing**
 - WebSocket connection for instant responses
@@ -740,7 +762,7 @@ Instant alerts for:
 - Feature-wise code structure
 - Fully functional real-time face recognition and activity detection pipeline architecture with Google ML Kit integration
 - Contextual analysis pipeline with Google Cloud Vision AI integration
-- Contact management system with photo capture and storage
+- Contact management system with photo capture, storage, and deletion\n- Task management system with deletion functionality
 - AI logic flow and prompt handling system
 - Database schema and real-time sync logic
 - Camera, face recognition, and activity detection integration logic with performance optimization
@@ -757,6 +779,7 @@ Instant alerts for:
 - **Caregiver contact and task management API documentation**
 - **Link status synchronization flow diagram**
 - **Alert delivery reliability testing report**
+- **Contact and task deletion flow documentation**
 \n### 9.4 Integration Points
 - Google ML Kit SDK for face detection, recognition, and pose detection
 - Google Cloud Vision API for contextual scene analysis
@@ -789,7 +812,8 @@ Instant alerts for:
 - **Alert delivery**: <5 seconds from trigger to caregiver notification (95th percentile)
 - **Contact/task sync**: <3 seconds from caregiver action to patient device update
 - **Database reset execution**: <30 seconds for complete data wipe
-
+- **Contact deletion sync**: <3 seconds from patient deletion to caregiver notification
+- **Task deletion sync**: <3 seconds from patient deletion to caregiver notification\n
 ## 10. Design Style\n
 ### 10.1 Visual Design\n- **Color Scheme**: Calming blues (#4A90E2) and soft greens (#7ED321) for patient mode, professional grays (#F5F5F5) and whites (#FFFFFF) for caregiver mode
 - **Typography**: Large San Francisco/Roboto fonts (24-32px) with high contrast for patient interface, standard 14-18px for caregiver dashboard
@@ -799,7 +823,7 @@ Instant alerts for:
 - **Real-time Indicators**: Subtle pulsing blue dot (8px) for active face recognition, green checkmark for whisper delivery confirmation, accuracy percentage display for recognized faces, activity badge (e.g., Sitting, Standing) with confidence indicator
 - **Activity Visualization**: Small activity icon overlays on recognized faces in caregiver dashboard, color-coded activity badges (blue for standing, green for sitting, orange for walking)\n- **Link Status Display**: Green badge with caregiver count in patient mode header, expandable list showing caregiver names and link timestamps
 - **Contextual Attribute Display**: Clothing and accessory tags displayed in face recognition event logs with color-coded labels
-
+- **Deletion UI**: Swipe-to-delete gesture with red delete button, confirmation dialog with Cancel and Delete options\n
 ### 10.2 Interaction Design
 - Large touch targets for patient interface (minimum 60px)\n- Smooth fade animations (300ms duration) to avoid confusion
 - Persistent emergency button with red background (#FF3B30) and high visibility
@@ -816,6 +840,8 @@ Instant alerts for:
 - Visual feedback for face recognition events (subtle border highlight around recognized faces with activity label and contextual attributes)
 - **Caregiver contact management**: Floating action button for add contact, swipe-to-edit/delete in contact list\n- **Caregiver task management**: Drag-and-drop task reordering, quick-add task button with time picker
 - **Alert acknowledgment**: Swipe-to-acknowledge gesture, tap for details\n- **First launch flow**: Step-by-step wizard with progress indicator for mode selection, account creation, and device linking
+- **Contact deletion flow**: Swipe left on contact → red delete button appears → tap delete → confirmation dialog → confirm deletion → contact removed with fade-out animation
+- **Task deletion flow**: Swipe left on task → red delete button appears → tap delete → confirmation dialog → confirm deletion → task removed with fade-out animation
 
 ## 11. Deployment and DevOps
 
@@ -857,6 +883,7 @@ Instant alerts for:
 - Face recognition and activity detection accuracy monitoring
 - **Alert delivery monitoring**: Track alert delivery success rate and latency
 - **Sync performance monitoring**: Monitor link status, contact, and task sync latency
+- **Deletion event monitoring**: Track contact and task deletion events and sync status
 
 **Infrastructure Monitoring**
 - Server health checks
@@ -867,14 +894,14 @@ Instant alerts for:
 - PagerDuty/Opsgenie integration\n- Slack/Email notifications
 - Escalation policies
 - Incident response playbooks
-\n### 11.4 Backup and Disaster Recovery
+
+### 11.4 Backup and Disaster Recovery
 - Automated daily database backups
 - Point-in-time recovery capability
 - Cross-region replication
 - Disaster recovery plan with RTO <4 hours, RPO <1 hour
 - Regular disaster recovery drills
-
-## 12. Compliance and Regulations
+\n## 12. Compliance and Regulations
 
 ### 12.1 Healthcare Compliance
 - HIPAA compliance for US deployment
@@ -903,14 +930,18 @@ Instant alerts for:
 - Security testing (penetration, vulnerability scanning)
 - Usability testing with target users
 - Accessibility testing\n- Face recognition accuracy testing with diverse datasets using Google ML Kit
-- Activity detection accuracy testing with various scenarios (different lighting, angles, occlusions)\n- Contextual analysis accuracy testing with Google Cloud Vision API
+- Activity detection accuracy testing with various scenarios (different lighting, angles, occlusions)
+- Contextual analysis accuracy testing with Google Cloud Vision API
 - **First login flow testing**: Validate complete user journey from app launch to dashboard access
 - **Device linking testing**: Test QR code generation, code validation, link establishment, and real-time sync
 - **Database reset testing**: Verify complete data wipe and clean start functionality
 - **Link status sync testing**: Verify real-time propagation of caregiver links to patient devices
 - **Alert delivery testing**: Validate multi-channel alert delivery reliability and latency
 - **Contact/task sync testing**: Test bidirectional synchronization with conflict scenarios
-\n### 13.2 Testing Tools
+- **Contact deletion testing**: Validate patient-initiated contact deletion with face encoding cleanup and caregiver notification
+- **Task deletion testing**: Validate patient-initiated task deletion with reminder cancellation and caregiver notification
+
+### 13.2 Testing Tools
 - Jest/XCTest for unit testing
 - Postman/Newman for API testing
 - Selenium/Appium for e2e testing
@@ -947,18 +978,19 @@ Instant alerts for:
 - Fully functional face detection and recognition with Google ML Kit
 - Activity detection integration with Google ML Kit Pose Detection
 - Contextual analysis integration with Google Cloud Vision AI
-- Contact management with photos\n- Task and reminder system
+- Contact management with photos and deletion
+- Task and reminder system with deletion
 - Location tracking\n- **Caregiver contact and task management APIs**
 \n### Phase 3 (Months 8-11): AI and Real-Time\n- AI companion integration\n- Real-time sync implementation
 - Bluetooth audio system\n- Alert and notification system
 - Combined face + activity + contextual recognition whisper delivery
 - Natural language description generation
 - **Alert delivery reliability improvements**
+- **Contact and task deletion sync implementation**
 
 ### Phase 4 (Months 12-15): Advanced Features
 - Health monitoring integration
-- Live camera feed
-- Advanced analytics and reporting
+- Live camera feed\n- Advanced analytics and reporting
 - Performance optimization
 - Multi-person activity tracking with contextual attributes
 - **Enhanced caregiver management features**
@@ -971,6 +1003,7 @@ Instant alerts for:
 - **First login flow and device linking testing**
 - **Database reset testing**
 - **Link status and alert delivery testing**
+- **Contact and task deletion testing**
 
 ### Phase 6 (Months 19-21): Compliance and Launch
 - HIPAA/GDPR compliance certification
@@ -1020,11 +1053,39 @@ Instant alerts for:
 - **Output Examples**: \n  - Known person: Alan is watching you wearing green shirt
   - Unknown person: It is a new person he is watching you silently
 - **Performance**: <2s contextual analysis, <2.5s total whisper delivery
-
-### 16.6 Face Saving and Recognition Workflow
+\n### 16.6 Face Saving and Recognition Workflow
 - **Unknown Face Detection**: System identifies unrecognized face and delivers contextual warning
 - **Save Prompt**: Patient can tap Save button to add person\n- **Auto-Capture**: System automatically captures current face image with optimal quality
 - **Face Encoding**: Google ML Kit generates face encoding from captured photo
 - **Database Storage**: Face encoding and photo stored in Known_Faces and Contacts tables
 - **Immediate Availability**: Newly saved face instantly available for recognition in future encounters
 - **Sync**: Face data synced to cloud backend for cross-device access
+
+### 16.7 Contact and Task Deletion Functionality
+- **Patient-Initiated Deletion**: Patients can delete contacts and tasks if saved by mistake
+- **Deletion UI**: Swipe-to-delete gesture with confirmation prompt to prevent accidental removal
+- **Contact Deletion Process**:
+  - Patient swipes left on contact in contact list
+  - Red delete button appears
+  - Patient taps delete button
+  - Confirmation dialog displays with Cancel and Delete options
+  - Upon confirmation, contact removed from local database
+  - Associated face encoding and photos deleted from Known_Faces table
+  - Deletion synced to cloud backend within 3 seconds
+  - Caregiver receives alert notification about contact deletion
+  - Deletion logged in Activity_Logs and Audit_Logs\n- **Task Deletion Process**:
+  - Patient swipes left on task in task list
+  - Red delete button appears
+  - Patient taps delete button
+  - Confirmation dialog displays with Cancel and Delete options
+  - Upon confirmation, task removed from local database
+  - Scheduled reminders for deleted task automatically cancelled
+  - Deletion synced to cloud backend within 3 seconds
+  - Caregiver receives alert notification about task deletion\n  - Deletion logged in Activity_Logs and Audit_Logs
+- **Database Schema Updates**:
+  - Tasks table: Added deleted_at and deleted_by fields
+  - Contacts table: Added deleted_at and deleted_by fields
+  - Known_Faces table: Added deleted_at field
+  - Alerts table: Added contact_deleted and task_deleted alert types
+- **Real-time Sync**: Deletion events propagated to caregiver devices within 3 seconds
+- **Caregiver Visibility**: Caregivers can view deletion history in activity logs and receive instant alerts

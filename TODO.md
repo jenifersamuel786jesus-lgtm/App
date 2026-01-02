@@ -1,3 +1,81 @@
+# RemZy Delete Functionality - Tasks & Contacts
+
+## Feature: Delete options for Tasks and Contacts
+
+### User Request
+Add delete/remove options to both Tasks and Contacts pages so users can remove items if saved by mistake.
+
+### Implementation Summary
+
+**Tasks Page (PatientTasksPage.tsx)**:
+- Added delete button to pending tasks (red trash icon next to Complete/Skip buttons)
+- Added delete button to completed tasks (ghost trash icon in header)
+- Added confirmation dialog before deletion
+- Shows success/error toast messages
+- Automatically refreshes task list after deletion
+
+**Contacts Page (PatientContactsPage.tsx)**:
+- Added delete button to each contact card (ghost trash icon in top-right)
+- Added confirmation dialog before deletion
+- Shows success/error toast messages
+- Automatically refreshes contacts list after deletion
+- Warning message explains face recognition data will be removed
+
+### Changes Made
+
+1. **PatientTasksPage.tsx**:
+   - Imported `AlertDialog` components and `Trash2` icon
+   - Imported `deleteTask` API function
+   - Added `deleteDialogOpen` and `taskToDelete` state
+   - Added `handleDeleteTask` and `openDeleteDialog` functions
+   - Added delete button to pending tasks (destructive variant)
+   - Added delete button to completed tasks (ghost variant)
+   - Added AlertDialog component for delete confirmation
+
+2. **PatientContactsPage.tsx**:
+   - Imported `AlertDialog` components and `Trash2` icon
+   - Imported `deleteKnownFace` API function
+   - Added `deleteDialogOpen` and `contactToDelete` state
+   - Added `handleDeleteContact` and `openDeleteDialog` functions
+   - Added delete button to contact cards (ghost variant)
+   - Added AlertDialog component for delete confirmation
+
+### User Experience
+
+**Tasks Deletion**:
+1. User sees trash icon on task card
+2. Clicks trash icon
+3. Confirmation dialog appears: "Delete Task? Are you sure you want to delete this task? This action cannot be undone."
+4. User clicks "Delete" or "Cancel"
+5. If deleted, success toast appears: "Task Deleted - Task has been removed successfully"
+6. Task list refreshes automatically
+
+**Contacts Deletion**:
+1. User sees trash icon on contact card (top-right corner)
+2. Clicks trash icon
+3. Confirmation dialog appears: "Delete Contact? Are you sure you want to delete this contact? This will remove their face recognition data and cannot be undone."
+4. User clicks "Delete" or "Cancel"
+5. If deleted, success toast appears: "Contact Deleted - Contact has been removed successfully"
+6. Contacts list refreshes automatically
+
+### Safety Features
+
+- **Confirmation Dialog**: Prevents accidental deletion
+- **Clear Warning**: Explains consequences (cannot be undone, removes face recognition data)
+- **Visual Feedback**: Toast messages confirm success or show errors
+- **Automatic Refresh**: UI updates immediately after deletion
+- **Error Handling**: Shows error toast if deletion fails
+
+### Database Operations
+
+Both delete operations use existing API functions:
+- `deleteTask(taskId: string): Promise<boolean>` - Deletes task from database
+- `deleteKnownFace(faceId: string): Promise<boolean>` - Deletes contact and face encoding from database
+
+RLS policies ensure users can only delete their own tasks and contacts.
+
+---
+
 # RemZy Bug Fix - Contacts Not Loading
 
 ## Issue: Contacts showing 0 saved after saving faces

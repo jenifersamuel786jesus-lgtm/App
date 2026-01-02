@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { getPatientByProfileId, getTasks, createTask, updateTask } from '@/db/api';
+import { ArrowLeft, Plus, CheckCircle2, XCircle, Clock, Trash2 } from 'lucide-react';
+import { getPatientByProfileId, getTasks, createTask, updateTask, deleteTask } from '@/db/api';
 import type { Patient, Task } from '@/types/types';
 import { useToast } from '@/hooks/use-toast';
 import { useTaskReminders } from '@/hooks/use-task-reminders';
@@ -21,6 +22,8 @@ export default function PatientTasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [newTask, setNewTask] = useState({
     task_name: '',
     scheduled_time: '',
@@ -115,6 +118,37 @@ export default function PatientTasksPage() {
       description: `Task marked as ${status}`,
     });
     loadData();
+  };
+
+  const handleDeleteTask = async () => {
+    if (!taskToDelete) return;
+    
+    console.log('🗑️ Deleting task:', taskToDelete);
+    const success = await deleteTask(taskToDelete);
+    
+    if (success) {
+      toast({
+        title: 'Task Deleted',
+        description: 'Task has been removed successfully.',
+      });
+      console.log('✅ Task deleted successfully');
+      loadData();
+    } else {
+      toast({
+        title: 'Delete Failed',
+        description: 'Could not delete task. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('❌ Failed to delete task');
+    }
+    
+    setDeleteDialogOpen(false);
+    setTaskToDelete(null);
+  };
+
+  const openDeleteDialog = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setDeleteDialogOpen(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -254,6 +288,14 @@ export default function PatientTasksPage() {
                           <XCircle className="w-5 h-5 mr-2" />
                           Skip
                         </Button>
+                        <Button
+                          onClick={() => openDeleteDialog(task.id)}
+                          variant="destructive"
+                          size="lg"
+                          className="h-14 px-4"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -280,7 +322,17 @@ export default function PatientTasksPage() {
                             })}
                           </CardDescription>
                         </div>
-                        {getStatusBadge(task.status)}
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(task.status)}
+                          <Button
+                            onClick={() => openDeleteDialog(task.id)}
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                   </Card>
@@ -290,6 +342,24 @@ export default function PatientTasksPage() {
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this task? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTask} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

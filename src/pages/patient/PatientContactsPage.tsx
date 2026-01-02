@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Users, UserPlus, Camera, Upload, X } from 'lucide-react';
-import { getPatientByProfileId, getKnownFaces, createKnownFace } from '@/db/api';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ArrowLeft, Plus, Users, UserPlus, Camera, Upload, X, Trash2 } from 'lucide-react';
+import { getPatientByProfileId, getKnownFaces, createKnownFace, deleteKnownFace } from '@/db/api';
 import type { Patient, KnownFace } from '@/types/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,8 @@ export default function PatientContactsPage() {
   const [contacts, setContacts] = useState<KnownFace[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newContact, setNewContact] = useState({
@@ -93,6 +96,37 @@ export default function PatientContactsPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleDeleteContact = async () => {
+    if (!contactToDelete) return;
+    
+    console.log('🗑️ Deleting contact:', contactToDelete);
+    const success = await deleteKnownFace(contactToDelete);
+    
+    if (success) {
+      toast({
+        title: 'Contact Deleted',
+        description: 'Contact has been removed successfully.',
+      });
+      console.log('✅ Contact deleted successfully');
+      loadData();
+    } else {
+      toast({
+        title: 'Delete Failed',
+        description: 'Could not delete contact. Please try again.',
+        variant: 'destructive',
+      });
+      console.error('❌ Failed to delete contact');
+    }
+    
+    setDeleteDialogOpen(false);
+    setContactToDelete(null);
+  };
+
+  const openDeleteDialog = (contactId: string) => {
+    setContactToDelete(contactId);
+    setDeleteDialogOpen(true);
   };
 
   const handleCreateContact = async () => {
@@ -318,6 +352,14 @@ export default function PatientContactsPage() {
                         })}
                       </p>
                     </div>
+                    <Button
+                      onClick={() => openDeleteDialog(contact.id)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
                   </div>
                 </CardHeader>
               </Card>
@@ -325,6 +367,24 @@ export default function PatientContactsPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this contact? This will remove their face recognition data and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteContact} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
