@@ -690,9 +690,15 @@ export default function PatientFaceRecognitionPage() {
       setAiAnalyzing(true);
       
       const APP_ID = import.meta.env.VITE_APP_ID;
+      console.log('🤖 AI Analysis starting...');
+      console.log('APP_ID:', APP_ID);
+      console.log('Is known person:', isKnown);
+      console.log('Person name:', personName);
+      console.log('Image size:', imageBase64.length);
       
       // Remove data:image/jpeg;base64, prefix if present
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      console.log('Base64 data size:', base64Data.length);
       
       const prompt = isKnown 
         ? `You are assisting an Alzheimer's patient with face recognition. This is ${personName}, someone they know well. 
@@ -721,6 +727,7 @@ Example: "A new person is standing nearby wearing a blue shirt and glasses, look
 
 Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
 
+      console.log('📤 Sending request to Gemini API...');
       const response = await fetch(
         'https://api-integrations.appmedo.com/app-8g7cyjjxisxt/api-rLob8RdzAOl9/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
         {
@@ -748,8 +755,12 @@ Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
         }
       );
 
+      console.log('📥 Response status:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error('AI analysis failed');
+        const errorText = await response.text();
+        console.error('❌ AI API error response:', errorText);
+        throw new Error(`AI analysis failed: ${response.status} ${response.statusText}`);
       }
 
       const reader = response.body?.getReader();
@@ -757,9 +768,13 @@ Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
       let fullText = '';
 
       if (reader) {
+        console.log('📖 Reading streaming response...');
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('✅ Stream complete');
+            break;
+          }
 
           const chunk = decoder.decode(value);
           const lines = chunk.split('\n');
@@ -769,20 +784,36 @@ Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
               try {
                 const jsonData = JSON.parse(line.slice(6));
                 if (jsonData.candidates?.[0]?.content?.parts?.[0]?.text) {
-                  fullText += jsonData.candidates[0].content.parts[0].text;
+                  const textChunk = jsonData.candidates[0].content.parts[0].text;
+                  fullText += textChunk;
+                  console.log('📝 Received text chunk:', textChunk);
                 }
               } catch (e) {
                 // Skip invalid JSON
+                console.log('⚠️ Skipping invalid JSON line');
               }
             }
           }
         }
       }
 
-      return fullText.trim() || 'AI analysis unavailable';
+      const finalText = fullText.trim();
+      console.log('✅ AI Analysis complete:', finalText);
+      
+      if (!finalText) {
+        console.warn('⚠️ AI returned empty response');
+        return 'is nearby';
+      }
+      
+      return finalText;
     } catch (error) {
-      console.error('Error analyzing with AI:', error);
-      return '';
+      console.error('❌ Error analyzing with AI:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      // Return a generic fallback instead of empty string
+      return 'is nearby';
     } finally {
       setAiAnalyzing(false);
     }
@@ -970,8 +1001,8 @@ Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
         console.log('✅ Face saved successfully:', newFace.id);
         console.log('Saved face encoding status:', newFace.face_encoding ? 'Present' : 'NULL');
         toast({
-          title: 'Contact Saved',
-          description: `${newFaceName} has been added to your contacts.`,
+          title: 'Contact Saved Successfully',
+          description: `${newFaceName} has been added to your contacts. You can view them in the Contacts page.`,
         });
 
         whisper(`I will remember ${newFaceName} from now on.`);
