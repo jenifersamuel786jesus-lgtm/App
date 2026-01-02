@@ -62,13 +62,29 @@ export default function PatientFaceRecognitionPage() {
   }, []);
 
   const loadData = async () => {
-    if (!profile) return;
+    console.log('📥 loadData called');
+    if (!profile) {
+      console.log('❌ No profile, skipping loadData');
+      return;
+    }
     
+    console.log('Loading patient data for profile:', profile.id);
     const patientData = await getPatientByProfileId(profile.id);
     if (patientData) {
+      console.log('✅ Patient data loaded:', patientData.id, patientData.full_name);
       setPatient(patientData);
+      
+      console.log('Loading known faces for patient:', patientData.id);
       const faces = await getKnownFaces(patientData.id);
+      console.log(`✅ Loaded ${faces.length} known faces:`, faces.map(f => ({
+        id: f.id,
+        name: f.person_name,
+        hasEncoding: !!f.face_encoding,
+        encodingLength: f.face_encoding?.length || 0,
+      })));
       setKnownFaces(faces);
+    } else {
+      console.log('❌ No patient data found');
     }
   };
 
@@ -595,46 +611,75 @@ export default function PatientFaceRecognitionPage() {
     confidence?: number;
     faceId?: string;
   }> => {
+    console.log('🔍 matchFace called');
+    console.log('Known faces count:', knownFaces.length);
+    console.log('Descriptor length:', descriptor.length);
+    
     if (knownFaces.length === 0) {
+      console.log('❌ No known faces to match against');
       return { isKnown: false };
     }
 
     const threshold = 0.6; // Similarity threshold (lower = more strict)
     let bestMatch: { name: string; distance: number; faceId: string } | null = null;
 
+    console.log(`Matching against ${knownFaces.length} known faces...`);
+    
     for (const face of knownFaces) {
-      if (!face.face_encoding) continue;
+      console.log(`Checking face: ${face.person_name} (ID: ${face.id})`);
+      console.log('Face encoding present:', !!face.face_encoding);
+      console.log('Face encoding length:', face.face_encoding?.length || 0);
+      
+      if (!face.face_encoding) {
+        console.log(`⚠️ Skipping ${face.person_name} - no face encoding`);
+        continue;
+      }
 
       try {
         // Parse stored face encoding
+        console.log(`Parsing face encoding for ${face.person_name}...`);
         const storedDescriptor = new Float32Array(JSON.parse(face.face_encoding));
+        console.log('Stored descriptor length:', storedDescriptor.length);
+        console.log('Stored descriptor sample:', Array.from(storedDescriptor.slice(0, 5)));
         
         // Calculate Euclidean distance
         const distance = faceapi.euclideanDistance(descriptor, storedDescriptor);
+        console.log(`Distance to ${face.person_name}: ${distance.toFixed(4)} (threshold: ${threshold})`);
 
         if (distance < threshold) {
+          console.log(`✅ ${face.person_name} is a potential match! (distance: ${distance.toFixed(4)})`);
           if (!bestMatch || distance < bestMatch.distance) {
+            console.log(`🏆 ${face.person_name} is now the best match!`);
             bestMatch = {
               name: face.person_name,
               distance,
               faceId: face.id,
             };
           }
+        } else {
+          console.log(`❌ ${face.person_name} not a match (distance ${distance.toFixed(4)} > threshold ${threshold})`);
         }
       } catch (error) {
-        console.error('Error matching face:', error);
+        console.error(`❌ Error matching face ${face.person_name}:`, error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          faceEncoding: face.face_encoding?.substring(0, 100) + '...',
+        });
       }
     }
 
     if (bestMatch) {
+      const confidence = Math.round((1 - bestMatch.distance) * 100);
+      console.log(`✅ MATCH FOUND: ${bestMatch.name} (distance: ${bestMatch.distance.toFixed(4)}, confidence: ${confidence}%)`);
       return {
         isKnown: true,
         name: bestMatch.name,
-        confidence: Math.round((1 - bestMatch.distance) * 100),
+        confidence,
         faceId: bestMatch.faceId,
       };
     }
 
+    console.log('❌ No match found - this is an unknown person');
     return { isKnown: false };
   };
 
