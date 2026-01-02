@@ -34,7 +34,7 @@ const routes: RouteConfig[] = [
   {
     name: 'Home',
     path: '/',
-    element: <Navigate to="/mode-selection" replace />
+    element: <Navigate to="/login" replace />
   },
   {
     name: 'Login',

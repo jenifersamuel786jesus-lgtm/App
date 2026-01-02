@@ -180,13 +180,6 @@ export default function CaregiverSetupPage() {
             <CardDescription>
               Let's set up your RemZy caregiver profile
             </CardDescription>
-            {/* Debug Info - Remove in production */}
-            {profile && (
-              <div className="mt-2 p-2 bg-muted rounded text-xs font-mono">
-                <div>Profile ID: {profile.id.substring(0, 8)}...</div>
-                <div>Role: {profile.role || 'none'}</div>
-              </div>
-            )}
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (

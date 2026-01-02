@@ -4,9 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Users, Bell, Activity, FileText, Settings, LogOut, AlertTriangle, MapPin } from 'lucide-react';
-import { getCaregiverByProfileId, getLinkedPatients, getCaregiverAlerts } from '@/db/api';
+import { Shield, Users, Bell, Activity, FileText, Settings, LogOut, AlertTriangle, MapPin, Link as LinkIcon, QrCode, KeyRound } from 'lucide-react';
+import { getCaregiverByProfileId, getLinkedPatients, getCaregiverAlerts, findPatientByLinkingCode, linkDevices } from '@/db/api';
 import type { Caregiver, PatientWithProfile, AlertWithPatient } from '@/types/types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import QRCodeScanner from '@/components/ui/qrcodescanner';
 
 export default function CaregiverDashboardPage() {
   const { profile, signOut } = useAuth();
@@ -15,6 +20,11 @@ export default function CaregiverDashboardPage() {
   const [patients, setPatients] = useState<PatientWithProfile[]>([]);
   const [alerts, setAlerts] = useState<AlertWithPatient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkingCode, setLinkingCode] = useState('');
+  const [linkError, setLinkError] = useState('');
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     loadCaregiverData();
@@ -47,6 +57,56 @@ export default function CaregiverDashboardPage() {
   const handleLogout = async () => {
     await signOut();
     navigate('/login');
+  };
+
+  const handleLinkPatient = async () => {
+    if (!linkingCode.trim() || linkingCode.length !== 8) {
+      setLinkError('Please enter a valid 8-character linking code');
+      return;
+    }
+
+    if (!caregiver) {
+      setLinkError('Caregiver profile not found');
+      return;
+    }
+
+    setLinkLoading(true);
+    setLinkError('');
+
+    try {
+      // Find patient by linking code
+      const patient = await findPatientByLinkingCode(linkingCode.toUpperCase());
+
+      if (!patient) {
+        setLinkError(`No patient found with code "${linkingCode}". Please check and try again.`);
+        setLinkLoading(false);
+        return;
+      }
+
+      // Link devices
+      const linkResult = await linkDevices(patient.id, caregiver.id);
+
+      if (!linkResult) {
+        setLinkError('Failed to link devices. This patient may already be linked.');
+        setLinkLoading(false);
+        return;
+      }
+
+      // Success! Reload data and close dialog
+      await loadCaregiverData();
+      setLinkDialogOpen(false);
+      setLinkingCode('');
+      setLinkError('');
+    } catch (err) {
+      setLinkError(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+
+    setLinkLoading(false);
+  };
+
+  const handleQRScan = (code: string) => {
+    setLinkingCode(code);
+    setShowScanner(false);
   };
 
   const getAlertIcon = (type: string) => {
@@ -105,12 +165,87 @@ export default function CaregiverDashboardPage() {
         {/* Welcome Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome, {caregiver?.full_name}!</CardTitle>
-            <CardDescription>
-              Monitoring {patients.length} {patients.length === 1 ? 'patient' : 'patients'}
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Welcome, {caregiver?.full_name}!</CardTitle>
+                <CardDescription>
+                  Monitoring {patients.length} {patients.length === 1 ? 'patient' : 'patients'}
+                </CardDescription>
+              </div>
+              <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <LinkIcon className="w-4 h-4" />
+                    Link Patient
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Link to Patient Device</DialogTitle>
+                    <DialogDescription>
+                      Enter the 8-character linking code from the patient's device
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    {linkError && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{linkError}</AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="link-code">Linking Code</Label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                        <Input
+                          id="link-code"
+                          type="text"
+                          placeholder="Enter 8-character code"
+                          value={linkingCode}
+                          onChange={(e) => setLinkingCode(e.target.value.toUpperCase())}
+                          maxLength={8}
+                          className="pl-10 font-mono tracking-wider uppercase"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 border-t border-border"></div>
+                      <span className="text-sm text-muted-foreground">or</span>
+                      <div className="flex-1 border-t border-border"></div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2"
+                      onClick={() => setShowScanner(true)}
+                    >
+                      <QrCode className="w-5 h-5" />
+                      Scan QR Code
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleLinkPatient} 
+                      className="w-full"
+                      disabled={linkLoading || linkingCode.length !== 8}
+                    >
+                      {linkLoading ? 'Linking...' : 'Link Patient'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
         </Card>
+
+        {/* QR Code Scanner Dialog */}
+        {showScanner && (
+          <QRCodeScanner
+            onScan={handleQRScan}
+            onClose={() => setShowScanner(false)}
+          />
+        )}
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-3">
