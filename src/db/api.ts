@@ -89,7 +89,35 @@ export const createPatient = async (patient: Partial<Patient>): Promise<Patient 
   console.log('Current auth user:', user?.id);
   console.log('Profile ID matches auth?', user?.id === patient.profile_id);
   
+  if (!user) {
+    console.error('❌ No authenticated user found');
+    return null;
+  }
+  
+  if (user.id !== patient.profile_id) {
+    console.error('❌ Profile ID mismatch: auth.uid() =', user.id, 'but profile_id =', patient.profile_id);
+    return null;
+  }
+  
+  // Check if patient already exists
+  console.log('🔍 Checking if patient already exists...');
+  const { data: existingPatient, error: checkError } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('profile_id', patient.profile_id)
+    .maybeSingle();
+  
+  if (checkError) {
+    console.error('❌ Error checking existing patient:', checkError);
+  }
+  
+  if (existingPatient) {
+    console.log('ℹ️ Patient already exists:', existingPatient);
+    return existingPatient;
+  }
+  
   // Generate linking code (8-character uppercase alphanumeric)
+  console.log('🔑 Generating linking code...');
   const { data: linkingCode, error: codeError } = await supabase.rpc('generate_linking_code');
   
   if (codeError) {
@@ -99,6 +127,7 @@ export const createPatient = async (patient: Partial<Patient>): Promise<Patient 
   
   console.log('✅ Generated linking code:', linkingCode);
   
+  console.log('📝 Creating new patient record...');
   const { data, error } = await supabase
     .from('patients')
     .insert({ ...patient, linking_code: linkingCode })
@@ -119,6 +148,9 @@ export const createPatient = async (patient: Partial<Patient>): Promise<Patient 
       console.error('🚫 UNIQUE CONSTRAINT VIOLATION: A patient profile already exists for this user');
     } else if (error.code === '42501') {
       console.error('🚫 RLS POLICY VIOLATION: User not authorized to create patient record');
+      console.error('   This usually means profile_id does not match auth.uid()');
+      console.error('   auth.uid():', user.id);
+      console.error('   profile_id:', patient.profile_id);
     } else if (error.code === '23503') {
       console.error('🚫 FOREIGN KEY VIOLATION: Profile does not exist');
     }
@@ -196,6 +228,34 @@ export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Ca
   console.log('Current auth user:', user?.id);
   console.log('Profile ID matches auth?', user?.id === caregiver.profile_id);
   
+  if (!user) {
+    console.error('❌ No authenticated user found');
+    return null;
+  }
+  
+  if (user.id !== caregiver.profile_id) {
+    console.error('❌ Profile ID mismatch: auth.uid() =', user.id, 'but profile_id =', caregiver.profile_id);
+    return null;
+  }
+  
+  // Check if caregiver already exists
+  console.log('🔍 Checking if caregiver already exists...');
+  const { data: existingCaregiver, error: checkError } = await supabase
+    .from('caregivers')
+    .select('*')
+    .eq('profile_id', caregiver.profile_id)
+    .maybeSingle();
+  
+  if (checkError) {
+    console.error('❌ Error checking existing caregiver:', checkError);
+  }
+  
+  if (existingCaregiver) {
+    console.log('ℹ️ Caregiver already exists:', existingCaregiver);
+    return existingCaregiver;
+  }
+  
+  console.log('📝 Creating new caregiver record...');
   const { data, error } = await supabase
     .from('caregivers')
     .insert(caregiver)
@@ -216,6 +276,9 @@ export const createCaregiver = async (caregiver: Partial<Caregiver>): Promise<Ca
       console.error('🚫 UNIQUE CONSTRAINT VIOLATION: A caregiver profile already exists for this user');
     } else if (error.code === '42501') {
       console.error('🚫 RLS POLICY VIOLATION: User not authorized to create caregiver record');
+      console.error('   This usually means profile_id does not match auth.uid()');
+      console.error('   auth.uid():', user.id);
+      console.error('   profile_id:', caregiver.profile_id);
     } else if (error.code === '23503') {
       console.error('🚫 FOREIGN KEY VIOLATION: Profile does not exist');
     }
