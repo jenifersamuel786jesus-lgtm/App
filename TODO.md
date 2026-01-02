@@ -1,3 +1,23 @@
+# RemZy Bug Fix - Contacts Not Loading
+
+## Issue: Contacts showing 0 saved after saving faces
+
+### Root Cause
+The `getKnownFaces` API function was ordering by `added_at` column, but the `known_faces` table uses `created_at` column. This caused a SQL error that silently returned empty array.
+
+### Fix Applied
+- Changed `order('added_at', ...)` to `order('created_at', ...)` in `getKnownFaces` function
+- Added comprehensive logging to track fetch operations
+- Added detailed error logging with message, code, details, and hint
+
+### Verification
+- Database has 2 saved faces for patient "mia" (Jenifer Samuel)
+- Both faces have face_encoding and photo_url present
+- RLS policies are correct and allow patient to SELECT their own faces
+- Fix ensures contacts will now load correctly on Contacts page
+
+---
+
 # RemZy Complete Implementation
 
 ## Task: Implement complete flow with AI-enhanced face detection

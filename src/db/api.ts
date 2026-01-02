@@ -411,16 +411,26 @@ export const deleteTask = async (taskId: string): Promise<boolean> => {
 
 // Known faces operations
 export const getKnownFaces = async (patientId: string): Promise<KnownFace[]> => {
+  console.log('🔍 getKnownFaces called for patient:', patientId);
+  
   const { data, error } = await supabase
     .from('known_faces')
     .select('*')
     .eq('patient_id', patientId)
-    .order('added_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching known faces:', error);
+    console.error('❌ Error fetching known faces:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
     return [];
   }
+  
+  console.log('✅ Known faces fetched:', data?.length || 0);
   return Array.isArray(data) ? data : [];
 };
 
