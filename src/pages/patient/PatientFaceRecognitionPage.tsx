@@ -1109,7 +1109,7 @@ export default function PatientFaceRecognitionPage() {
               {!currentDetection.isKnown && (
                 <div className="space-y-3">
                   <div className="bg-warning/10 border border-warning/30 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-warning-foreground">
+                    <p className="text-sm font-medium text-black">
                       👤 This is someone new! Would you like to save them so I can remember them next time?
                     </p>
                   </div>
