@@ -23,6 +23,8 @@ export default function PatientFaceRecognitionPage() {
   const [knownFaces, setKnownFaces] = useState<KnownFace[]>([]);
   const [cameraActive, setCameraActive] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState('');
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [currentDetection, setCurrentDetection] = useState<{
     isKnown: boolean;
@@ -72,23 +74,65 @@ export default function PatientFaceRecognitionPage() {
 
   const loadModels = async () => {
     try {
+      setModelsLoading(true);
+      setLoadingProgress('Initializing...');
       console.log('Starting to load face recognition models...');
-      const MODEL_URL = '/models'; // Models should be in public/models folder
+      console.log('User agent:', navigator.userAgent);
+      console.log('Platform:', navigator.platform);
       
-      console.log('Loading tiny face detector...');
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      // Use absolute URL for better mobile compatibility
+      const MODEL_URL = window.location.origin + '/models';
+      console.log('Model URL:', MODEL_URL);
       
-      console.log('Loading face landmark 68...');
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      // Add timeout wrapper for each model load
+      const loadWithTimeout = async (loadFn: () => Promise<void>, name: string, timeoutMs = 30000) => {
+        console.log(`Loading ${name}...`);
+        setLoadingProgress(`Loading ${name}...`);
+        const startTime = Date.now();
+        
+        return Promise.race([
+          loadFn(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout loading ${name} after ${timeoutMs}ms`)), timeoutMs)
+          )
+        ]).then(() => {
+          const duration = Date.now() - startTime;
+          console.log(`✅ ${name} loaded successfully in ${duration}ms`);
+        }).catch((error) => {
+          console.error(`❌ Failed to load ${name}:`, error);
+          throw error;
+        });
+      };
       
-      console.log('Loading face recognition...');
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      // Load models with timeout and retry
+      await loadWithTimeout(
+        () => faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        'Tiny Face Detector',
+        30000
+      );
       
-      console.log('Loading face expression...');
-      await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+      await loadWithTimeout(
+        () => faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        'Face Landmark 68',
+        30000
+      );
       
-      console.log('All models loaded successfully!');
+      await loadWithTimeout(
+        () => faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        'Face Recognition Net',
+        30000
+      );
+      
+      await loadWithTimeout(
+        () => faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+        'Face Expression Net',
+        30000
+      );
+      
+      console.log('✅ All models loaded successfully!');
       setModelsLoaded(true);
+      setModelsLoading(false);
+      setLoadingProgress('');
       toast({
         title: 'Face Recognition Ready',
         description: 'Camera system is ready to use',
@@ -103,12 +147,32 @@ export default function PatientFaceRecognitionPage() {
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
       });
+      
+      // Provide specific error message based on error type
+      let errorMessage = 'Face recognition cannot work without models. ';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Timeout')) {
+          errorMessage += 'Models are taking too long to load. Please check your internet connection and try again.';
+        } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage += 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('404')) {
+          errorMessage += 'Model files not found. Please contact support.';
+        } else {
+          errorMessage += 'Please refresh the page and try again.';
+        }
+      }
+      
       toast({
         title: 'Model Loading Failed',
-        description: 'Face recognition cannot work without models. Please refresh the page.',
+        description: errorMessage,
         variant: 'destructive',
       });
+      
+      setModelsLoading(false);
+      setLoadingProgress('');
       // DO NOT set modelsLoaded to true if models failed to load!
       setModelsLoaded(false);
     }
@@ -847,15 +911,36 @@ export default function PatientFaceRecognitionPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Camera</CardTitle>
             <CardDescription>
-              {modelsLoaded 
-                ? 'Face recognition is ready. Start the camera to begin. Point the back camera at people to recognize them.' 
-                : 'Loading face recognition models...'}
+              {modelsLoading
+                ? 'Loading face recognition models...'
+                : modelsLoaded 
+                  ? 'Face recognition is ready. Start the camera to begin. Point the back camera at people to recognize them.' 
+                  : 'Model loading failed. Please refresh the page.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {!modelsLoaded && (
-              <div className="bg-muted p-4 rounded-lg text-center">
-                <p className="text-sm text-muted-foreground">Loading AI models, please wait...</p>
+            {modelsLoading && (
+              <div className="bg-primary/10 border border-primary/20 p-4 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+                  <p className="text-sm font-medium text-primary">
+                    {loadingProgress || 'Loading AI models...'}
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  This may take 10-30 seconds on mobile devices. Please wait...
+                </p>
+              </div>
+            )}
+            
+            {!modelsLoaded && !modelsLoading && (
+              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg">
+                <p className="text-sm font-medium text-destructive">
+                  Failed to load face recognition models
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Please check your internet connection and refresh the page.
+                </p>
               </div>
             )}
             
@@ -863,12 +948,12 @@ export default function PatientFaceRecognitionPage() {
               {!cameraActive ? (
                 <Button
                   onClick={startCamera}
-                  disabled={!modelsLoaded}
+                  disabled={!modelsLoaded || modelsLoading}
                   size="lg"
                   className="flex-1 h-16 text-lg"
                 >
                   <Camera className="w-6 h-6 mr-2" />
-                  {modelsLoaded ? 'Start Camera' : 'Loading Models...'}
+                  {modelsLoading ? (loadingProgress || 'Loading Models...') : (modelsLoaded ? 'Start Camera' : 'Models Failed')}
                 </Button>
               ) : (
                 <Button
