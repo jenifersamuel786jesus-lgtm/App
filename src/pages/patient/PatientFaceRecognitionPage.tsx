@@ -695,8 +695,31 @@ export default function PatientFaceRecognitionPage() {
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
       
       const prompt = isKnown 
-        ? `You are assisting an Alzheimer's patient. This is ${personName}, someone they know. Describe what ${personName} is doing right now (sitting, standing, walking, etc.) and what they're wearing. Keep it to 1-2 short sentences. Be warm and reassuring. Example: "${personName} is sitting down wearing a blue shirt." or "${personName} is standing and appears to be smiling."`
-        : `You are assisting an Alzheimer's patient. They are meeting someone new. Describe what this person is doing (sitting, standing, walking, etc.) and their appearance (clothing, hair, distinctive features). Keep it to 1-2 short sentences. Be warm and reassuring. Example: "This person is standing and wearing a red jacket with short brown hair." or "This person is sitting down with glasses and a friendly smile."`;
+        ? `You are assisting an Alzheimer's patient with face recognition. This is ${personName}, someone they know well. 
+
+Describe what ${personName} is doing right now in a warm, reassuring way. Include:
+- Their current activity (watching, looking at you, standing, sitting, walking, etc.)
+- What they're wearing (clothing color and type, like "wearing a green shirt" or "wearing a blue jacket")
+- Their expression or demeanor if visible (smiling, looking friendly, etc.)
+
+Format: "${personName} is [activity] wearing [clothing description]."
+Example: "${personName} is watching you wearing a green shirt and smiling."
+Example: "${personName} is standing nearby wearing a blue jacket."
+
+Keep it to 1-2 short, natural sentences. Be warm and reassuring.`
+        : `You are assisting an Alzheimer's patient with face recognition. They are meeting someone new who they don't recognize.
+
+Describe this new person in a calm, reassuring way. Include:
+- Their current activity (watching you, looking at you, standing, sitting, etc.)
+- What they're wearing (clothing color and type)
+- Their general appearance (hair color, glasses, etc.)
+- Their demeanor (friendly, calm, smiling, etc.)
+
+Format: "A new person is [activity] wearing [clothing description]."
+Example: "A new person is watching you silently wearing a red jacket with short brown hair."
+Example: "A new person is standing nearby wearing a blue shirt and glasses, looking friendly."
+
+Keep it to 1-2 short, natural sentences. Be calm and reassuring.`;
 
       const response = await fetch(
         'https://api-integrations.appmedo.com/app-8g7cyjjxisxt/api-rLob8RdzAOl9/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
