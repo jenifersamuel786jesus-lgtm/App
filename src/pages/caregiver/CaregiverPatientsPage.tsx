@@ -42,8 +42,15 @@ export default function CaregiverPatientsPage() {
   };
 
   const handleLinkPatient = async () => {
+    console.log('🔗 handleLinkPatient called');
+    console.log('Caregiver:', caregiver?.id, caregiver?.full_name);
+    console.log('Linking code input:', linkingCode);
+    console.log('Linking code trimmed:', linkingCode.trim());
+    console.log('Linking code uppercase:', linkingCode.toUpperCase().trim());
+    
     if (!caregiver || !linkingCode.trim()) {
       setLinkError('Please enter a linking code');
+      console.log('❌ Validation failed: missing caregiver or linking code');
       return;
     }
 
@@ -52,26 +59,35 @@ export default function CaregiverPatientsPage() {
 
     try {
       // Find patient by linking code
-      const patient = await findPatientByLinkingCode(linkingCode.toUpperCase().trim());
+      const normalizedCode = linkingCode.toUpperCase().trim();
+      console.log('🔍 Searching for patient with code:', normalizedCode);
+      
+      const patient = await findPatientByLinkingCode(normalizedCode);
       
       if (!patient) {
+        console.log('❌ No patient found with code:', normalizedCode);
         setLinkError('Invalid linking code. Please check and try again.');
         setLinking(false);
         return;
       }
 
+      console.log('✅ Patient found:', patient.id, patient.full_name);
+
       // Check if already linked
       const alreadyLinked = patients.some(p => p.id === patient.id);
       if (alreadyLinked) {
+        console.log('⚠️ Patient already linked');
         setLinkError('This patient is already linked to your account.');
         setLinking(false);
         return;
       }
 
+      console.log('🔗 Linking devices...');
       // Link devices
       const link = await linkDevices(patient.id, caregiver.id);
       
       if (link) {
+        console.log('✅ Devices linked successfully');
         toast({
           title: 'Patient Linked Successfully',
           description: `${patient.full_name} has been added to your patients list.`,
@@ -81,10 +97,15 @@ export default function CaregiverPatientsPage() {
         setLinkError('');
         loadData(); // Reload patients list
       } else {
+        console.log('❌ Failed to link devices');
         setLinkError('Failed to link patient. Please try again.');
       }
     } catch (error) {
-      console.error('Error linking patient:', error);
+      console.error('❌ Error linking patient:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       setLinkError('An error occurred while linking. Please try again.');
     }
 

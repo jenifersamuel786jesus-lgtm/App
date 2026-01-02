@@ -220,7 +220,10 @@ export const linkDevices = async (patientId: string, caregiverId: string): Promi
 };
 
 export const findPatientByLinkingCode = async (linkingCode: string): Promise<Patient | null> => {
-  console.log('findPatientByLinkingCode called with:', linkingCode);
+  console.log('🔍 findPatientByLinkingCode called');
+  console.log('Input linking code:', linkingCode);
+  console.log('Linking code length:', linkingCode.length);
+  console.log('Linking code type:', typeof linkingCode);
   
   const { data, error } = await supabase
     .from('patients')
@@ -229,7 +232,7 @@ export const findPatientByLinkingCode = async (linkingCode: string): Promise<Pat
     .maybeSingle();
 
   if (error) {
-    console.error('Error finding patient:', error);
+    console.error('❌ Error finding patient:', error);
     console.error('Error details:', {
       message: error.message,
       details: error.details,
@@ -239,7 +242,31 @@ export const findPatientByLinkingCode = async (linkingCode: string): Promise<Pat
     return null;
   }
   
-  console.log('Patient found:', data ? `ID: ${data.id}, Name: ${data.full_name}` : 'null');
+  if (data) {
+    console.log('✅ Patient found:', {
+      id: data.id,
+      name: data.full_name,
+      linkingCode: data.linking_code,
+    });
+  } else {
+    console.log('❌ No patient found with linking code:', linkingCode);
+    
+    // Debug: Let's see all patients and their linking codes
+    const { data: allPatients, error: debugError } = await supabase
+      .from('patients')
+      .select('id, full_name, linking_code')
+      .limit(10);
+    
+    if (!debugError && allPatients) {
+      console.log('📋 All patients in database:', allPatients.map(p => ({
+        id: p.id,
+        name: p.full_name,
+        linkingCode: p.linking_code,
+        match: p.linking_code === linkingCode,
+      })));
+    }
+  }
+  
   return data;
 };
 
