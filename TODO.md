@@ -1,3 +1,39 @@
+# RemZy Error Fix - React useState Error
+
+## Error: Cannot read properties of null (reading 'useState')
+
+### Root Cause
+The error "Cannot read properties of null (reading 'useState')" in AuthContext.tsx at line 32 indicates that React module was null when trying to access useState hook. This typically occurs when:
+1. React is not properly imported as default export
+2. Bundler cache issues
+3. Module resolution problems
+
+### Fix Applied
+Changed React import in AuthContext.tsx from named-only imports to include default React import:
+
+**Before**:
+```typescript
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+```
+
+**After**:
+```typescript
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+```
+
+### Why This Fixes It
+- Adding `React` as default import ensures React namespace is available
+- Some bundler configurations require default React import for hooks to work properly
+- This is a common pattern in React applications to avoid module resolution issues
+- Ensures React object is properly initialized before hooks are called
+
+### Verification
+- Ran `npm run lint` - 0 errors, 0 warnings
+- All 92 files checked successfully
+- No breaking changes to existing functionality
+
+---
+
 # RemZy Delete Functionality - Tasks & Contacts
 
 ## Feature: Delete options for Tasks and Contacts
