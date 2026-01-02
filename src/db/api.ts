@@ -349,6 +349,15 @@ export const getKnownFaces = async (patientId: string): Promise<KnownFace[]> => 
 };
 
 export const createKnownFace = async (face: Partial<KnownFace>): Promise<KnownFace | null> => {
+  console.log('👤 createKnownFace called');
+  console.log('Face data:', {
+    patient_id: face.patient_id,
+    person_name: face.person_name,
+    relationship: face.relationship,
+    has_face_encoding: !!face.face_encoding,
+    encoding_length: face.face_encoding?.length,
+  });
+  
   const { data, error } = await supabase
     .from('known_faces')
     .insert(face)
@@ -356,9 +365,21 @@ export const createKnownFace = async (face: Partial<KnownFace>): Promise<KnownFa
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating known face:', error);
+    console.error('❌ Error creating known face:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
     return null;
   }
+  
+  console.log('✅ Known face created successfully:', {
+    id: data?.id,
+    person_name: data?.person_name,
+  });
+  
   return data;
 };
 
