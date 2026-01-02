@@ -524,6 +524,8 @@ export default function PatientFaceRecognitionPage() {
 
     if (match.isKnown && match.name) {
       // Known face detected
+      console.log(`✅ Known face detected: ${match.name}`);
+      
       setCurrentDetection({
         isKnown: true,
         name: match.name,
@@ -531,18 +533,21 @@ export default function PatientFaceRecognitionPage() {
         faceId: match.faceId,
       });
       
-      // Initial whisper
-      whisper(`This is ${match.name}.`);
-      
       // Get AI analysis for known person with activity description
+      let fullMessage = `This is ${match.name}.`;
+      
       if (snapshotImage) {
         const aiAnalysis = await analyzeWithAI(snapshotImage, true, match.name);
         if (aiAnalysis) {
           setCurrentDetection(prev => prev ? { ...prev, aiAnalysis } : null);
-          // Whisper the activity description
-          whisper(aiAnalysis);
+          // Combine name and activity into one message
+          fullMessage = `This is ${match.name}. ${aiAnalysis}`;
+          console.log('Combined message:', fullMessage);
         }
       }
+      
+      // Single whisper with combined message
+      whisper(fullMessage);
       
       // Update last_seen for this face
       if (match.faceId) {
@@ -553,12 +558,13 @@ export default function PatientFaceRecognitionPage() {
     } else {
       // Unknown face detected
       console.log('🆕 Unknown face detected!');
-      whisper('You are meeting someone new.');
       
       // Capture image for saving
       captureSnapshot(descriptor);
       
       // Get AI analysis for unknown person with activity description
+      let fullMessage = 'You are meeting someone new.';
+      
       if (snapshotImage) {
         const aiAnalysis = await analyzeWithAI(snapshotImage, false);
         if (aiAnalysis) {
@@ -567,8 +573,9 @@ export default function PatientFaceRecognitionPage() {
             confidence: 0,
             aiAnalysis,
           });
-          // Whisper the activity description
-          whisper(aiAnalysis);
+          // Combine unknown message and activity into one message
+          fullMessage = `You are meeting someone new. ${aiAnalysis}`;
+          console.log('Combined message:', fullMessage);
           console.log('✅ Unknown person detection complete with AI analysis');
         } else {
           setCurrentDetection({
@@ -584,6 +591,9 @@ export default function PatientFaceRecognitionPage() {
         });
         console.log('✅ Unknown person detection complete (no snapshot)');
       }
+      
+      // Single whisper with combined message
+      whisper(fullMessage);
       
       // Log unknown encounter
       if (patient) {
@@ -825,19 +835,35 @@ export default function PatientFaceRecognitionPage() {
   };
 
   const whisper = (text: string) => {
-    if (!audioEnabled) return;
+    console.log('🔊 whisper called with text:', text);
+    console.log('Audio enabled:', audioEnabled);
+    
+    if (!audioEnabled) {
+      console.log('❌ Audio disabled, skipping whisper');
+      return;
+    }
 
     // Prevent duplicate whispers within 5 seconds
     const now = Date.now();
-    if (lastWhisperRef.current === text && now - lastWhisperTimeRef.current < 5000) {
+    const timeSinceLastWhisper = now - lastWhisperTimeRef.current;
+    console.log('Last whisper:', lastWhisperRef.current);
+    console.log('Time since last whisper:', timeSinceLastWhisper, 'ms');
+    
+    if (lastWhisperRef.current === text && timeSinceLastWhisper < 5000) {
+      console.log('❌ Duplicate whisper within 5 seconds, skipping');
       return;
     }
 
     lastWhisperRef.current = text;
     lastWhisperTimeRef.current = now;
+    
+    console.log('✅ Speaking:', text);
 
     // Use Web Speech API for text-to-speech
     if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech to prevent overlap
+      speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.9; // Slightly slower for clarity
       utterance.pitch = 1.0;
@@ -851,8 +877,22 @@ export default function PatientFaceRecognitionPage() {
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
+      
+      utterance.onstart = () => {
+        console.log('🔊 Speech started:', text);
+      };
+      
+      utterance.onend = () => {
+        console.log('✅ Speech ended:', text);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('❌ Speech error:', event);
+      };
 
       speechSynthesis.speak(utterance);
+    } else {
+      console.log('❌ speechSynthesis not available');
     }
   };
 
