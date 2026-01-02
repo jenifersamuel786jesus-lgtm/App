@@ -80,56 +80,88 @@ export default function PatientFaceRecognitionPage() {
       console.log('User agent:', navigator.userAgent);
       console.log('Platform:', navigator.platform);
       
-      // Use absolute URL for better mobile compatibility
-      const MODEL_URL = window.location.origin + '/models';
-      console.log('Model URL:', MODEL_URL);
+      // Try multiple model URLs for better reliability
+      const MODEL_URLS = [
+        window.location.origin + '/models', // Primary: Same origin
+        '/models', // Fallback 1: Relative path
+        'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model', // Fallback 2: CDN
+      ];
       
-      // Add timeout wrapper for each model load
-      const loadWithTimeout = async (loadFn: () => Promise<void>, name: string, timeoutMs = 30000) => {
-        console.log(`Loading ${name}...`);
-        setLoadingProgress(`Loading ${name}...`);
-        const startTime = Date.now();
+      let modelsLoadedSuccessfully = false;
+      let lastError: Error | null = null;
+      
+      // Try each URL until one works
+      for (let i = 0; i < MODEL_URLS.length && !modelsLoadedSuccessfully; i++) {
+        const MODEL_URL = MODEL_URLS[i];
+        console.log(`Attempt ${i + 1}/${MODEL_URLS.length}: Trying model URL:`, MODEL_URL);
+        setLoadingProgress(`Attempt ${i + 1}/${MODEL_URLS.length}: Loading models...`);
         
-        return Promise.race([
-          loadFn(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`Timeout loading ${name} after ${timeoutMs}ms`)), timeoutMs)
-          )
-        ]).then(() => {
-          const duration = Date.now() - startTime;
-          console.log(`✅ ${name} loaded successfully in ${duration}ms`);
-        }).catch((error) => {
-          console.error(`❌ Failed to load ${name}:`, error);
-          throw error;
-        });
-      };
+        try {
+          // Add timeout wrapper for each model load
+          const loadWithTimeout = async (loadFn: () => Promise<void>, name: string, timeoutMs = 30000) => {
+            console.log(`Loading ${name}...`);
+            setLoadingProgress(`Attempt ${i + 1}: Loading ${name}...`);
+            const startTime = Date.now();
+            
+            return Promise.race([
+              loadFn(),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(`Timeout loading ${name} after ${timeoutMs}ms`)), timeoutMs)
+              )
+            ]).then(() => {
+              const duration = Date.now() - startTime;
+              console.log(`✅ ${name} loaded successfully in ${duration}ms`);
+            }).catch((error) => {
+              console.error(`❌ Failed to load ${name}:`, error);
+              throw error;
+            });
+          };
+          
+          // Load models with timeout
+          await loadWithTimeout(
+            () => faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            'Tiny Face Detector',
+            30000
+          );
+          
+          await loadWithTimeout(
+            () => faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+            'Face Landmark 68',
+            30000
+          );
+          
+          await loadWithTimeout(
+            () => faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+            'Face Recognition Net',
+            30000
+          );
+          
+          await loadWithTimeout(
+            () => faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+            'Face Expression Net',
+            30000
+          );
+          
+          console.log(`✅ All models loaded successfully from: ${MODEL_URL}`);
+          modelsLoadedSuccessfully = true;
+          break; // Exit loop on success
+          
+        } catch (error) {
+          console.error(`❌ Failed to load models from ${MODEL_URL}:`, error);
+          lastError = error instanceof Error ? error : new Error('Unknown error');
+          
+          // Continue to next URL if available
+          if (i < MODEL_URLS.length - 1) {
+            console.log(`Trying next URL...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+          }
+        }
+      }
       
-      // Load models with timeout and retry
-      await loadWithTimeout(
-        () => faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-        'Tiny Face Detector',
-        30000
-      );
+      if (!modelsLoadedSuccessfully) {
+        throw lastError || new Error('Failed to load models from all sources');
+      }
       
-      await loadWithTimeout(
-        () => faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-        'Face Landmark 68',
-        30000
-      );
-      
-      await loadWithTimeout(
-        () => faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-        'Face Recognition Net',
-        30000
-      );
-      
-      await loadWithTimeout(
-        () => faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-        'Face Expression Net',
-        30000
-      );
-      
-      console.log('✅ All models loaded successfully!');
       setModelsLoaded(true);
       setModelsLoading(false);
       setLoadingProgress('');
