@@ -533,6 +533,14 @@ export const getAlerts = async (patientId: string, status?: string, limit = 50):
 };
 
 export const createAlert = async (alert: Partial<Alert>): Promise<Alert | null> => {
+  console.log('🚨 createAlert called');
+  console.log('Alert data:', {
+    patient_id: alert.patient_id,
+    alert_type: alert.alert_type,
+    title: alert.title,
+    message: alert.message?.substring(0, 50) + '...',
+  });
+  
   const { data, error } = await supabase
     .from('alerts')
     .insert(alert)
@@ -540,9 +548,22 @@ export const createAlert = async (alert: Partial<Alert>): Promise<Alert | null> 
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating alert:', error);
+    console.error('❌ Error creating alert:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
     return null;
   }
+  
+  console.log('✅ Alert created successfully:', {
+    id: data?.id,
+    type: data?.alert_type,
+    status: data?.alert_status,
+  });
+  
   return data;
 };
 
@@ -577,6 +598,10 @@ export const getUnreadAlertsCount = async (patientId: string): Promise<number> =
 
 // Get all alerts for caregiver (across all linked patients)
 export const getCaregiverAlerts = async (caregiverId: string, limit = 50): Promise<AlertWithPatient[]> => {
+  console.log('📬 getCaregiverAlerts called');
+  console.log('Caregiver ID:', caregiverId);
+  console.log('Limit:', limit);
+  
   // First get all patient IDs linked to this caregiver
   const { data: links, error: linksError } = await supabase
     .from('device_links')
@@ -584,12 +609,18 @@ export const getCaregiverAlerts = async (caregiverId: string, limit = 50): Promi
     .eq('caregiver_id', caregiverId)
     .eq('is_active', true);
 
-  if (linksError || !links || links.length === 0) {
-    console.error('Error fetching device links:', linksError);
+  if (linksError) {
+    console.error('❌ Error fetching device links:', linksError);
+    return [];
+  }
+  
+  if (!links || links.length === 0) {
+    console.log('⚠️ No linked patients found for caregiver');
     return [];
   }
 
   const patientIds = links.map(link => link.patient_id);
+  console.log(`✅ Found ${patientIds.length} linked patients:`, patientIds);
 
   // Then get alerts for those patients
   const { data, error } = await supabase
@@ -606,8 +637,26 @@ export const getCaregiverAlerts = async (caregiverId: string, limit = 50): Promi
     .limit(limit);
 
   if (error) {
-    console.error('Error fetching caregiver alerts:', error);
+    console.error('❌ Error fetching caregiver alerts:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
     return [];
   }
+  
+  console.log(`✅ Found ${data?.length || 0} alerts for caregiver`);
+  if (data && data.length > 0) {
+    console.log('Alert summary:', data.map(a => ({
+      id: a.id,
+      type: a.alert_type,
+      status: a.alert_status,
+      patient: a.patient?.full_name,
+      created: a.created_at,
+    })));
+  }
+  
   return Array.isArray(data) ? data : [];
 };
