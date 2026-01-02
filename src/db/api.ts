@@ -77,15 +77,27 @@ export const getPatient = async (patientId: string): Promise<Patient | null> => 
 };
 
 export const createPatient = async (patient: Partial<Patient>): Promise<Patient | null> => {
+  console.log('👤 createPatient called');
+  console.log('Patient data:', {
+    profile_id: patient.profile_id,
+    full_name: patient.full_name,
+    device_id: patient.device_id,
+  });
+  
+  // Check current auth status
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log('Current auth user:', user?.id);
+  console.log('Profile ID matches auth?', user?.id === patient.profile_id);
+  
   // Generate linking code (8-character uppercase alphanumeric)
   const { data: linkingCode, error: codeError } = await supabase.rpc('generate_linking_code');
   
   if (codeError) {
-    console.error('Error generating linking code:', codeError);
+    console.error('❌ Error generating linking code:', codeError);
     return null;
   }
   
-  console.log('Generated linking code:', linkingCode);
+  console.log('✅ Generated linking code:', linkingCode);
   
   const { data, error } = await supabase
     .from('patients')
@@ -94,11 +106,32 @@ export const createPatient = async (patient: Partial<Patient>): Promise<Patient 
     .maybeSingle();
 
   if (error) {
-    console.error('Error creating patient:', error);
+    console.error('❌ Error creating patient:', error);
+    console.error('Error details:', {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
+    
+    // Provide specific error messages
+    if (error.code === '23505') {
+      console.error('🚫 UNIQUE CONSTRAINT VIOLATION: A patient profile already exists for this user');
+    } else if (error.code === '42501') {
+      console.error('🚫 RLS POLICY VIOLATION: User not authorized to create patient record');
+    } else if (error.code === '23503') {
+      console.error('🚫 FOREIGN KEY VIOLATION: Profile does not exist');
+    }
+    
     return null;
   }
   
-  console.log('Patient created with linking code:', data?.linking_code);
+  console.log('✅ Patient created successfully:', {
+    id: data?.id,
+    full_name: data?.full_name,
+    linking_code: data?.linking_code,
+  });
+  
   return data;
 };
 

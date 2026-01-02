@@ -15,6 +15,7 @@ export default function PatientSetupPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [linkingCode, setLinkingCode] = useState('');
+  const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -50,24 +51,47 @@ export default function PatientSetupPage() {
   };
 
   const handleComplete = async () => {
-    if (!profile) return;
+    if (!profile) {
+      setError('No profile found. Please sign in again.');
+      return;
+    }
+    
+    if (!formData.full_name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
     
     setLoading(true);
+    setError('');
     
-    // Create patient record
-    const patient = await createPatient({
-      profile_id: profile.id,
-      full_name: formData.full_name,
-      date_of_birth: formData.date_of_birth || null,
-      safe_area_lat: formData.safe_area_lat ? parseFloat(formData.safe_area_lat) : null,
-      safe_area_lng: formData.safe_area_lng ? parseFloat(formData.safe_area_lng) : null,
-      safe_area_radius: parseInt(formData.safe_area_radius),
-      device_id: crypto.randomUUID(),
-    });
-    
-    if (patient) {
+    try {
+      console.log('Creating patient with profile_id:', profile.id);
+      console.log('Full name:', formData.full_name);
+      
+      // Create patient record
+      const patient = await createPatient({
+        profile_id: profile.id,
+        full_name: formData.full_name.trim(),
+        date_of_birth: formData.date_of_birth || null,
+        safe_area_lat: formData.safe_area_lat ? parseFloat(formData.safe_area_lat) : null,
+        safe_area_lng: formData.safe_area_lng ? parseFloat(formData.safe_area_lng) : null,
+        safe_area_radius: parseInt(formData.safe_area_radius),
+        device_id: crypto.randomUUID(),
+      });
+      
+      console.log('Patient creation result:', patient);
+      
+      if (!patient) {
+        setError('Failed to create patient profile. Please check your connection and try again.');
+        setLoading(false);
+        return;
+      }
+      
       setLinkingCode(patient.linking_code || '');
       setStep(4);
+    } catch (err) {
+      console.error('Error in handleComplete:', err);
+      setError('An error occurred during setup. Please try again.');
     }
     
     setLoading(false);
@@ -207,6 +231,12 @@ export default function PatientSetupPage() {
                   )}
                 </div>
               </div>
+              
+              {error && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
               
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep(2)} className="flex-1 h-12" disabled={loading}>
