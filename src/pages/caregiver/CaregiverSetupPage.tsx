@@ -144,10 +144,18 @@ export default function CaregiverSetupPage() {
         console.log('🎉 Successfully linked to patient:', patient.full_name);
       }
       
-      // Update role to caregiver
-      console.log('📝 Updating profile role to caregiver...');
-      await updateProfile(profile.id, { role: 'caregiver' });
+      // Update role and device_mode to caregiver
+      console.log('📝 Updating profile role and device_mode to caregiver...');
+      await updateProfile(profile.id, { 
+        role: 'caregiver',
+        device_mode: 'caregiver'
+      });
+      
+      console.log('🔄 Refreshing profile...');
       await refreshProfile();
+      
+      // Wait a moment to ensure database transaction is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log('✅ Setup complete! Navigating to dashboard...');
       navigate('/caregiver/dashboard', { replace: true });

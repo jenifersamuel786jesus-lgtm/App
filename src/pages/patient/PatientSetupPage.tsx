@@ -100,8 +100,11 @@ export default function PatientSetupPage() {
   const handleFinish = async () => {
     if (!profile) return;
     
-    // Update role to patient
-    await updateProfile(profile.id, { role: 'patient' });
+    // Update role and device_mode to patient
+    await updateProfile(profile.id, { 
+      role: 'patient',
+      device_mode: 'patient'
+    });
     await refreshProfile();
     
     navigate('/patient/dashboard', { replace: true });

@@ -31,23 +31,41 @@ export default function CaregiverDashboardPage() {
   }, [profile]);
 
   const loadCaregiverData = async () => {
-    if (!profile) return;
+    if (!profile) {
+      console.log('❌ No profile found in loadCaregiverData');
+      return;
+    }
+    
+    console.log('📥 Loading caregiver data for profile:', profile.id);
+    console.log('Profile details:', {
+      username: profile.username,
+      role: profile.role,
+      device_mode: profile.device_mode
+    });
     
     setLoading(true);
     const caregiverData = await getCaregiverByProfileId(profile.id);
     
+    console.log('👤 Caregiver data result:', caregiverData);
+    
     if (!caregiverData) {
+      console.log('⚠️ No caregiver record found, redirecting to setup');
       navigate('/caregiver/setup');
       return;
     }
     
+    console.log('✅ Caregiver found:', caregiverData.full_name);
     setCaregiver(caregiverData);
     
     // Load linked patients and alerts
+    console.log('📥 Loading linked patients and alerts...');
     const [patientsData, alertsData] = await Promise.all([
       getLinkedPatients(caregiverData.id),
       getCaregiverAlerts(caregiverData.id, 10),
     ]);
+    
+    console.log('✅ Loaded patients:', patientsData.length);
+    console.log('✅ Loaded alerts:', alertsData.length);
     
     setPatients(patientsData);
     setAlerts(alertsData);
