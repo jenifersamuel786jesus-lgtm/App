@@ -17,6 +17,7 @@ export default function CaregiverSetupPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState('');
   const [showScanner, setShowScanner] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -84,6 +85,7 @@ export default function CaregiverSetupPage() {
     
     setLoading(true);
     setError('');
+    setStatusMessage('Creating your caregiver profile...');
     
     try {
       console.log('🚀 Starting caregiver setup...');
@@ -112,11 +114,13 @@ export default function CaregiverSetupPage() {
         
         setError('Failed to create caregiver profile. Please check the browser console for detailed error information, then try logging out and logging back in.');
         setLoading(false);
+        setStatusMessage('');
         return;
       }
       
       // If linking code provided, link to patient
       if (formData.linking_code) {
+        setStatusMessage('Linking to patient device...');
         console.log('🔗 Attempting to link with code:', formData.linking_code);
         const patient = await findPatientByLinkingCode(formData.linking_code.toUpperCase());
         
@@ -125,6 +129,7 @@ export default function CaregiverSetupPage() {
         if (!patient) {
           setError(`Invalid linking code "${formData.linking_code}". No patient found with this code. Please check and try again.`);
           setLoading(false);
+          setStatusMessage('');
           return;
         }
         
@@ -138,6 +143,7 @@ export default function CaregiverSetupPage() {
         if (!linkResult) {
           setError('Failed to link devices. This could be due to permissions or a duplicate link. Please try again or contact support.');
           setLoading(false);
+          setStatusMessage('');
           return;
         }
         
@@ -145,6 +151,7 @@ export default function CaregiverSetupPage() {
       }
       
       // Update role and device_mode to caregiver
+      setStatusMessage('Finalizing setup...');
       console.log('📝 Updating profile role and device_mode to caregiver...');
       await updateProfile(profile.id, { 
         role: 'caregiver',
@@ -154,9 +161,24 @@ export default function CaregiverSetupPage() {
       console.log('🔄 Refreshing profile...');
       await refreshProfile();
       
-      // Wait a moment to ensure database transaction is complete
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait longer to ensure database transaction is fully committed and replicated
+      setStatusMessage('Verifying your profile...');
+      console.log('⏳ Waiting for database replication...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Verify caregiver was created
+      console.log('🔍 Verifying caregiver record...');
+      const verifyCaregiver = await getCaregiverByProfileId(profile.id);
+      if (!verifyCaregiver) {
+        console.error('❌ Caregiver verification failed - record not found after creation');
+        setError('Setup completed but verification failed. Please try refreshing the page.');
+        setLoading(false);
+        setStatusMessage('');
+        return;
+      }
+      
+      console.log('✅ Caregiver verified:', verifyCaregiver.full_name);
+      setStatusMessage('Success! Redirecting to dashboard...');
       console.log('✅ Setup complete! Navigating to dashboard...');
       navigate('/caregiver/dashboard', { replace: true });
     } catch (err) {
@@ -193,6 +215,15 @@ export default function CaregiverSetupPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            {statusMessage && (
+              <Alert>
+                <AlertDescription className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  {statusMessage}
+                </AlertDescription>
               </Alert>
             )}
 
