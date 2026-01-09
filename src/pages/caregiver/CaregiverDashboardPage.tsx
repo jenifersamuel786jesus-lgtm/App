@@ -25,7 +25,6 @@ export default function CaregiverDashboardPage() {
   const [linkError, setLinkError] = useState('');
   const [linkLoading, setLinkLoading] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     loadCaregiverData();
@@ -48,13 +47,14 @@ export default function CaregiverDashboardPage() {
     
     // Retry mechanism for database replication lag
     let caregiverData = await getCaregiverByProfileId(profile.id);
+    let attempts = 0;
     
-    // If no data found and we haven't retried yet, wait and try again
-    if (!caregiverData && retryCount < 3) {
-      console.log(`⏳ No caregiver found, retrying (attempt ${retryCount + 1}/3)...`);
+    // If no data found, wait and try again (database replication lag)
+    while (!caregiverData && attempts < 5) {
+      attempts++;
+      console.log(`⏳ No caregiver found, retrying (attempt ${attempts}/5)...`);
       await new Promise(resolve => setTimeout(resolve, 1000));
       caregiverData = await getCaregiverByProfileId(profile.id);
-      setRetryCount(prev => prev + 1);
     }
     
     console.log('👤 Caregiver data result:', caregiverData);
@@ -62,12 +62,12 @@ export default function CaregiverDashboardPage() {
     if (!caregiverData) {
       console.log('⚠️ No caregiver record found after retries, redirecting to setup');
       navigate('/caregiver/setup');
+      setLoading(false);
       return;
     }
     
     console.log('✅ Caregiver found:', caregiverData.full_name);
     setCaregiver(caregiverData);
-    setRetryCount(0); // Reset retry count on success
     
     // Load linked patients and alerts
     console.log('📥 Loading linked patients and alerts...');
