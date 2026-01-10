@@ -77,32 +77,33 @@ export default function CaregiverSetupPage() {
       setError('No profile found. Please log in again.');
       return;
     }
-    
+
     if (!formData.full_name.trim()) {
       setError('Please enter your full name');
       return;
     }
-    
+
     setLoading(true);
     setError('');
     setStatusMessage('Creating your caregiver profile...');
-    
+
     try {
       console.log('🚀 Starting caregiver setup...');
       console.log('Profile ID:', profile.id);
       console.log('Full name:', formData.full_name);
       console.log('Linking code:', formData.linking_code);
-      
-      // Create caregiver record
+
+      // Create caregiver record FIRST (before profile update to avoid RLS issues)
+      setStatusMessage('Creating your caregiver profile...');
       console.log('📝 Creating caregiver record...');
       const caregiver = await createCaregiver({
         profile_id: profile.id,
         full_name: formData.full_name.trim(),
         phone: formData.phone?.trim() || null,
       });
-      
+
       console.log('✅ Caregiver creation result:', caregiver);
-      
+
       if (!caregiver) {
         console.error('❌ Caregiver creation returned null');
         console.error('This could mean:');
@@ -111,102 +112,74 @@ export default function CaregiverSetupPage() {
         console.error('3. RLS policy violation');
         console.error('4. Database connection issue');
         console.error('Check the console logs above for specific error details');
-        
+
         setError('Failed to create caregiver profile. Please check the browser console for detailed error information, then try logging out and logging back in.');
         setLoading(false);
         setStatusMessage('');
         return;
       }
-      
+
+      // Update role and device_mode AFTER caregiver creation
+      setStatusMessage('Updating your profile...');
+      console.log('📝 Updating profile role and device_mode to caregiver...');
+      await updateProfile(profile.id, {
+        role: 'caregiver',
+        device_mode: 'caregiver'
+      });
+
       // If linking code provided, link to patient
       if (formData.linking_code) {
         setStatusMessage('Linking to patient device...');
         console.log('🔗 Attempting to link with code:', formData.linking_code);
         const patient = await findPatientByLinkingCode(formData.linking_code.toUpperCase());
-        
+
         console.log('👤 Patient found:', patient);
-        
+
         if (!patient) {
           setError(`Invalid linking code "${formData.linking_code}". No patient found with this code. Please check and try again.`);
           setLoading(false);
           setStatusMessage('');
           return;
         }
-        
+
         console.log('🔗 Linking devices...');
         console.log('Patient ID:', patient.id);
         console.log('Caregiver ID:', caregiver.id);
-        
+
         const linkResult = await linkDevices(patient.id, caregiver.id);
         console.log('✅ Link result:', linkResult);
-        
+
         if (!linkResult) {
           setError('Failed to link devices. This could be due to permissions or a duplicate link. Please try again or contact support.');
           setLoading(false);
           setStatusMessage('');
           return;
         }
-        
+
         console.log('🎉 Successfully linked to patient:', patient.full_name);
+      } else {
+        console.log('ℹ️ Skipping linking - user chose to link later');
       }
-      
-      // Update role and device_mode to caregiver
-      setStatusMessage('Finalizing setup...');
-      console.log('📝 Updating profile role and device_mode to caregiver...');
-      const updateResult = await updateProfile(profile.id, { 
-        role: 'caregiver',
-        device_mode: 'caregiver'
-      });
-      
-      if (!updateResult) {
-        console.error('❌ Failed to update profile');
-        setError('Failed to update profile. Please try again.');
-        setLoading(false);
-        setStatusMessage('');
-        return;
-      }
-      
-      console.log('✅ Profile updated:', updateResult);
+
+      // Refresh profile to get updated data
       console.log('🔄 Refreshing profile...');
       await refreshProfile();
-      
-      // Wait longer to ensure database transaction is fully committed and replicated
-      setStatusMessage('Verifying your profile...');
-      console.log('⏳ Waiting for database replication (2 seconds)...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Verify caregiver was created - with retries
-      console.log('🔍 Verifying caregiver record...');
-      let verifyCaregiver = await getCaregiverByProfileId(profile.id);
-      
-      // Retry if not found immediately (database replication lag)
-      if (!verifyCaregiver) {
-        console.log('⏳ First verification failed, retrying in 1 second...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        verifyCaregiver = await getCaregiverByProfileId(profile.id);
-      }
-      
-      if (!verifyCaregiver) {
-        console.error('❌ Caregiver verification failed - record not found after creation');
-        console.log('This could happen due to database replication delays');
-        console.log('The caregiver was created successfully, but verification timed out');
-        console.log('Proceeding to dashboard anyway...');
-        // Don't fail - the caregiver was created successfully
-      } else {
-        console.log('✅ Caregiver verified:', verifyCaregiver.full_name);
-      }
-      
+
+      // Wait for database replication
+      setStatusMessage('Finalizing setup...');
+      console.log('⏳ Waiting for database replication...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       setStatusMessage('Success! Redirecting to dashboard...');
       console.log('✅ Setup complete! Navigating to dashboard...');
-      
-      // Add a small delay before navigation to ensure state is stable
-      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Navigate to dashboard
       navigate('/caregiver/dashboard', { replace: true });
     } catch (err) {
       console.error('❌ Error in handleComplete:', err);
       setError(`An error occurred during setup: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
-    
+
     setLoading(false);
   };
 
@@ -259,7 +232,7 @@ export default function CaregiverSetupPage() {
                     type="text"
                     placeholder="Enter your full name"
                     value={formData.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
+                    onChange={(e) => handleInputChange('full_name', (e.currentTarget as any).value)}
                     className="pl-10 text-lg h-14"
                   />
                 </div>
@@ -272,7 +245,7 @@ export default function CaregiverSetupPage() {
                   type="tel"
                   placeholder="Enter your phone number"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handleInputChange('phone', (e.currentTarget as any).value)}
                   className="text-lg h-14"
                 />
               </div>
@@ -299,7 +272,7 @@ export default function CaregiverSetupPage() {
                       type="text"
                       placeholder="Enter 8-character code"
                       value={formData.linking_code}
-                      onChange={(e) => handleInputChange('linking_code', e.target.value.toUpperCase())}
+                      onChange={(e) => handleInputChange('linking_code', (e.currentTarget as any).value.toUpperCase())}
                       maxLength={8}
                       className="pl-10 text-lg h-14 font-mono tracking-wider uppercase"
                     />

@@ -346,6 +346,18 @@ ON caregivers FOR ALL
 TO authenticated
 USING (is_admin(auth.uid()));
 
+-- Allow authenticated users to SELECT their own caregiver row
+CREATE POLICY allow_select_own_caregiver
+ON public.caregivers
+FOR SELECT
+USING (profile_id = auth.uid());
+
+-- Allow authenticated users to INSERT a caregiver with their own profile_id
+CREATE POLICY allow_insert_own_caregiver
+ON public.caregivers
+FOR INSERT
+WITH CHECK (profile_id = auth.uid());
+
 -- ============================================================================
 -- DEVICE LINKS POLICIES
 -- ============================================================================
