@@ -1,6 +1,4 @@
 # Welcome to Your Miaoda Project
-Miaoda Application Link URL
-    URL:https://medo.dev/projects/app-8g7cyjjxisxt
 
 # RemZy - Alzheimer's Care Application
 
