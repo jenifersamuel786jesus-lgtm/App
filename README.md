@@ -1,4 +1,4 @@
-# Welcome to Your Miaoda Project
+# Welcome to Project
 
 # RemZy - Alzheimer's Care Application
 
